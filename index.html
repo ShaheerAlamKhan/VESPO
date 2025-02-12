@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Surgical Data Visualization Tool</title>
+    
+    <style src = '../VESPO/style.css'> </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+</head>
+
+    <body>
+        <div class="container">
+            <!-- Sidebar with Filter Categories -->
+            <aside class="sidebar">
+                <div class="filter-group">
+                    <h3>Surgical Approach</h3>
+                    <select id="surgical-approach">
+                        <option value="">Select approach...</option>
+                        <option value="laparoscopic">Laparoscopic</option>
+                        <option value="open">Open</option>
+                        <option value="robotic">Robotic</option>
+                    </select>
+                </div>
+    
+                <div class="filter-group">
+                    <h3>Demographics</h3>
+                    <select id="demographics">
+                        <option value="">Select demographic...</option>
+                        <option value="gender">Gender</option>
+                        <option value="age">Age</option>
+                        <option value="height">Height</option>
+                        <option value="weight">Weight</option>
+                    </select>
+                </div>
+    
+                <div class="filter-group">
+                    <h3>Anesthesia</h3>
+                    <select id="anesthesia">
+                        <option value="">Select type...</option>
+                        <option value="general">General</option>
+                        <option value="regional">Regional</option>
+                        <option value="local">Local</option>
+                    </select>
+                </div>
+    
+                <div class="filter-group">
+                    <h3>Anesthetic</h3>
+                    <select id="anesthetic">
+                        <option value="">Select anesthetic...</option>
+                        <option value="propofol">Propofol</option>
+                        <option value="sevoflurane">Sevoflurane</option>
+                        <option value="desflurane">Desflurane</option>
+                    </select>
+                </div>
+            </aside>
+    
+            <!-- Main Content Area -->
+            <main class="main-content">
+                <!-- Top Filter Bar -->
+                <div class="top-filters">
+                    <select id="operation-time">
+                        <option value="">Operation Time...</option>
+                        <option value="start">Start Time</option>
+                        <option value="end">End Time</option>
+                        <option value="duration">Duration</option>
+                    </select>
+    
+                    <select id="surgery-type">
+                        <option value="">Surgery Type...</option>
+                        <option value="cardiac">Cardiac</option>
+                        <option value="orthopedic">Orthopedic</option>
+                        <option value="neurological">Neurological</option>
+                    </select>
+    
+                    <select id="diagnosis">
+                        <option value="">Diagnosis...</option>
+                        <option value="cancer">Cancer</option>
+                        <option value="trauma">Trauma</option>
+                        <option value="infection">Infection</option>
+                    </select>
+                </div>
+    
+                <!-- Visualization Area -->
+                <div class="visualization-container" id="visualization">
+                    <!-- D3.js visualization will be inserted here -->
+                </div>
+            </main>
+        </div>
+    
+        <script>
+            // Initialize the visualization
+            document.addEventListener('DOMContentLoaded', function() {
+                // Your D3.js visualization code will go here
+                console.log('Visualization initialized');
+            });
+        </script>
+    </body>
+    </html>
