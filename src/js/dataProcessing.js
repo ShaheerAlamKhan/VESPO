@@ -1,5 +1,5 @@
 // dataProcessing.js
-import Papa from 'papaparse';
+import Papa from 'https://cdn.jsdelivr.net/npm/papaparse@5.4.1/+esm'
 
 class DataProcessor {
     constructor() {
@@ -39,39 +39,66 @@ class DataProcessor {
 
     // Process raw data into a format suitable for D3
     processData() {
-        this.processedData = this.rawData.map(record => ({
-            id: record.caseid,
-            patientId: record.subjectid,
-            surgery: {
-                type: record.optype,
-                name: record.opname,
-                approach: record.approach,
-                department: record.department,
-                diagnosis: record.dx
-            },
-            timing: {
-                duration: this.calculateDuration(record.opstart, record.opend),
-                date: new Date(record.casestart)
-            },
-            patient: {
-                age: record.age,
-                sex: record.sex,
-                bmi: record.bmi,
-                asa: record.asa
-            },
-            vitals: {
-                preop_hb: record.preop_hb,
-                preop_plt: record.preop_plt,
-                preop_na: record.preop_na,
-                preop_k: record.preop_k
-            },
-            medications: {
-                propofol: record.intraop_ppf,
-                fentanyl: record.intraop_ftn,
-                ephedrine: record.intraop_eph,
-                phenylephrine: record.intraop_phe
-            }
-        }));
+        this.processedData = this.rawData
+            .filter(record => {
+                // Enhanced null/undefined/NaN checking for critical fields
+                return Boolean(
+                    record?.caseid && 
+                    record?.subjectid &&
+                    record?.department &&
+                    !isNaN(parseFloat(record?.age)) &&
+                    !isNaN(parseFloat(record?.opstart)) && 
+                    !isNaN(parseFloat(record?.opend)) &&
+                    parseFloat(record?.opend) > parseFloat(record?.opstart) // Ensure valid duration
+                );
+            })
+            .map(record => {
+                // Helper function to safely parse numbers
+                const safeNumber = (value) => {
+                    const parsed = parseFloat(value);
+                    return !isNaN(parsed) ? parsed : null;
+                };
+    
+                // Helper function to safely parse strings
+                const safeString = (value) => value || null;
+    
+                return {
+                    id: safeString(record.caseid),
+                    patientId: safeString(record.subjectid),
+                    surgery: {
+                        type: safeString(record.optype),
+                        name: safeString(record.opname),
+                        approach: safeString(record.approach),
+                        department: safeString(record.department),
+                        diagnosis: safeString(record.dx)
+                    },
+                    timing: {
+                        duration: this.calculateDuration(
+                            safeNumber(record.opstart), 
+                            safeNumber(record.opend)
+                        ),
+                        date: record.casestart ? new Date(record.casestart) : null
+                    },
+                    patient: {
+                        age: safeNumber(record.age),
+                        sex: safeString(record.sex),
+                        bmi: safeNumber(record.bmi),
+                        asa: safeString(record.asa)
+                    },
+                    vitals: {
+                        preop_hb: safeNumber(record.preop_hb),
+                        preop_plt: safeNumber(record.preop_plt),
+                        preop_na: safeNumber(record.preop_na),
+                        preop_k: safeNumber(record.preop_k)
+                    },
+                    medications: {
+                        propofol: safeNumber(record.intraop_ppf),
+                        fentanyl: safeNumber(record.intraop_ftn),
+                        ephedrine: safeNumber(record.intraop_eph),
+                        phenylephrine: safeNumber(record.intraop_phe)
+                    }
+                };
+            });
     }
 
     // Helper function to calculate duration

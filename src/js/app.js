@@ -1,6 +1,6 @@
 // app.js
 import { dataProcessor } from './dataProcessing.js';
-import { visualization } from './visualization.js';
+import { visualization } from './visualization.js'
 
 async function initializeApp() {
     try {

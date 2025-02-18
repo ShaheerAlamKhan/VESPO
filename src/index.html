@@ -14,26 +14,6 @@
         <!-- Left Sidebar -->
         <aside class="sidebar">
             <!-- Filter Groups -->
-            <div class="filter-group">
-                <h3>Surgical Approach</h3>
-                <select id="surgical-approach" class="filter-select">
-                    <option value="">Select approach...</option>
-                    <option value="laparoscopic">Laparoscopic</option>
-                    <option value="open">Open</option>
-                    <option value="robotic">Robotic</option>
-                </select>
-            </div>
-
-            <div class="filter-group">
-                <h3>Demographics</h3>
-                <select id="demographics" class="filter-select">
-                    <option value="">Select demographic...</option>
-                    <option value="gender">Gender</option>
-                    <option value="age">Age</option>
-                    <option value="height">Height</option>
-                    <option value="weight">Weight</option>
-                </select>
-            </div>
 
             <div class="filter-group">
                 <h3>Anesthesia</h3>
@@ -66,24 +46,26 @@
                     <option value="end">End Time</option>
                     <option value="duration">Duration</option>
                 </select>
-
-                <select id="surgery-type" class="top-filter-select">
-                    <option value="">Surgery Type...</option>
-                    <option value="cardiac">Cardiac</option>
-                    <option value="orthopedic">Orthopedic</option>
-                    <option value="neurological">Neurological</option>
-                </select>
-
-                <select id="diagnosis" class="top-filter-select">
-                    <option value="">Diagnosis...</option>
-                    <option value="cancer">Cancer</option>
-                    <option value="trauma">Trauma</option>
-                    <option value="infection">Infection</option>
-                </select>
             </div>
 
             <!-- Visualization Area -->
             <div class="visualization-container">
+                <h2>How do different combinations of patient risk factors affect surgical duration and outcomes?</h2>
+                <div class="metric-controls">
+                    <div class="metric-selector">
+                        <label>Primary Metric:</label>
+                        <select id="primary-metric">
+                            <option value="duration">Surgery Duration</option>
+                            <option value="icu_days">ICU Days</option>
+                            <option value="death_inhosp">In-hospital Mortality</option>
+                            <option value="bmi">BMI</option>
+                            <option value="age">Age</option>
+                        </select>
+                    </div>
+                    <div class="view-controls">
+                        <button id="toggle-overlay" class="control-btn">Toggle Overlay</button>
+                    </div>
+                </div>
                 <div id="visualization">
                     <!-- D3.js visualization will be inserted here -->
                 </div>
