@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VESPO - Visual Exploration of Surgical Procedures & Outcomes</title>
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <!-- Risk Factor Filters -->
+            <div class="filter-group">
+                <h3>Risk Factors (X-Axis)</h3>
+                <select id="risk-factor" class="filter-select">
+                    <option value="age">Age</option>
+                    <option value="bmi">BMI</option>
+                    <option value="asa">ASA Score</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <h3>Outcome (Y-Axis)</h3>
+                <select id="outcome" class="filter-select">
+                    <option value="duration">Surgery Duration</option>
+                    <option value="icu_days">ICU Days</option>
+                    <option value="death_inhosp">Mortality Rate</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <h3>Department</h3>
+                <select id="department" class="filter-select">
+                    <option value="">All Departments</option>
+                </select>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div class="visualization-container">
+                <h2>Patient Risk Factors and Surgical Outcomes Analysis</h2>
+                <div id="visualization"></div>
+            </div>
+        </main>
+    </div>
+    <script type="module" src="js/app.js"></script>
+</body>
+</html>
