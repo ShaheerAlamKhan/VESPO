@@ -81,8 +81,9 @@ function setupTabs() {
   scatterTab.addEventListener("click", () => {
     scatterTab.classList.add("active");
     sunburstTab.classList.remove("active");
-    // Clear visualization container and render the scatter plot
+    // Clear visualization container and reinitialize the scatter plot SVG container
     document.getElementById("visualization").innerHTML = "";
+    visualization.setupVisualization();
     updateVisualization();
   });
 

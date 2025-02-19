@@ -4,7 +4,7 @@ import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
 export class Visualization {
   constructor() {
     // Dimensions for scatter plot (also used by other views)
-    this.width = 900;
+    this.width = 1000;
     this.height = 500;
     this.margin = { top: 40, right: 100, bottom: 60, left: 60 };
     this.innerWidth = this.width - this.margin.left - this.margin.right;
