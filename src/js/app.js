@@ -22,6 +22,9 @@ async function initializeApp() {
         document.body.classList.toggle("dark-mode");
       });
     }
+    
+    // Create the word cloud in the new section underneath dynamic plots
+    visualization.updateWordCloud(dataProcessor.rawData);
   } catch (error) {
     console.error("Error initializing app:", error);
   }

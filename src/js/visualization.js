@@ -1,5 +1,7 @@
 // visualization.js
 import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
+// Updated import: use esm.sh to ensure a proper ES module for d3-cloud.
+import d3Cloud from "https://esm.sh/d3-cloud@1.2.5";
 
 export class Visualization {
   constructor() {
@@ -86,7 +88,7 @@ export class Visualization {
       .attr("x", -this.innerHeight / 2)
       .attr("y", -40);
 
-    // Create tooltip for scatter plot
+    // Create tooltip for scatter plot and word cloud hover events
     this.tooltip = d3
       .select("body")
       .append("div")
@@ -101,7 +103,7 @@ export class Visualization {
     const legend = this.svg
       .append("g")
       .attr("class", "legend")
-      .attr("transform", `translate(${this.width-140},20)`);
+      .attr("transform", `translate(${this.width - 140},20)`);
 
     // Non-Emergency Legend
     legend
@@ -469,6 +471,76 @@ export class Visualization {
 
     function arcVisible(d) {
       return d.y1 <= 3 && d.y0 >= 1 && d.x1 > d.x0;
+    }
+  }
+
+  // New method to create the diagnosis word cloud
+  updateWordCloud(rawData) {
+    // Remove any existing word cloud SVG inside the #wordcloud container
+    d3.select("#wordcloud").select("svg").remove();
+
+    // Extract non-empty diagnosis values (using the "dx" field)
+    const diagnoses = rawData.map(d => d.dx).filter(Boolean);
+
+    // Count each unique diagnosis phrase (ignoring case)
+    const phraseCounts = d3.rollups(
+      diagnoses,
+      group => group.length,
+      phrase => phrase.toLowerCase()
+    );
+    phraseCounts.sort(([, a], [, b]) => d3.descending(a, b));
+    const wordsData = phraseCounts.map(([phrase, count]) => ({ text: phrase, count }));
+
+    const width = 640, height = 400;
+    const maxCount = d3.max(wordsData, d => d.count);
+
+    // Set up the cloud layout
+    const layout = d3Cloud()
+      .size([width, height])
+      .words(wordsData)
+      .padding(5)
+      .rotate(() => 0)
+      .font("sans-serif")
+      .fontSize(d => Math.sqrt(d.count) * 15)
+      .on("end", draw);
+
+    layout.start();
+
+    const self = this; // preserve context for tooltip usage
+
+    function draw(words) {
+      const svg = d3.select("#wordcloud")
+        .append("svg")
+        .attr("width", width)
+        .attr("height", height)
+        .attr("viewBox", [0, 0, width, height])
+        .attr("font-family", "sans-serif")
+        .attr("text-anchor", "middle");
+
+      // Center the word cloud
+      const g = svg.append("g")
+        .attr("transform", `translate(${width / 2},${height / 2})`);
+
+      g.selectAll("text")
+        .data(words)
+        .enter()
+        .append("text")
+        .style("font-size", d => `${d.size}px`)
+        .style("font-weight", "bold")
+        .style("fill-opacity", d => d.count / maxCount)
+        .attr("text-anchor", "middle")
+        .attr("transform", d => `translate(${d.x},${d.y})rotate(${d.rotate})`)
+        .text(d => d.text)
+        .on("mouseover", function(event, d) {
+          self.tooltip
+            .style("opacity", 1)
+            .html(`${d.text}: ${d.count} occurrences`)
+            .style("left", event.pageX + 10 + "px")
+            .style("top", event.pageY + 10 + "px");
+        })
+        .on("mouseout", function() {
+          self.tooltip.style("opacity", 0);
+        });
     }
   }
 }
