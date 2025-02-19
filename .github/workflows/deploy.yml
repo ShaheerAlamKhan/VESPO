@@ -21,13 +21,26 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         
+      - name: Debug file structure
+        run: |
+          echo "Current directory:"
+          pwd
+          echo "\nRepository contents:"
+          ls -la
+          echo "\nSrc directory contents:"
+          ls -la src/
+          echo "\nSrc/js contents:"
+          ls -la src/js/
+          echo "\nSrc/css contents:"
+          ls -la src/css/
+          
       - name: Setup Pages
         uses: actions/configure-pages@v4
         
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './src'
+          path: 'src'
           
       - name: Deploy to GitHub Pages
         id: deployment
