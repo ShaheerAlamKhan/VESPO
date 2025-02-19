@@ -11,8 +11,6 @@ export class Visualization {
 
         this.metrics = {
             // Risk Factors
-            // Risk Factors
-            // Risk Factors
             age: {
                 label: "Patient Age (years)",
                 format: d => d ? `${d} years` : 'N/A'
@@ -33,12 +31,10 @@ export class Visualization {
             approach: {
                 label: "Surgery Approach",
                 format: d => d ? `${d}` : 'N/A', // display categorical label as is
-                toNumeric: (d, categoryMap) => categoryMap[d] !== undefined ? categoryMap[d] : NaN
             },
             optype: {
                 label: "Surgery Type",
                 format: d => d ? `${d}` : 'N/A', // display categorical label as is
-                toNumeric: (d, categoryMap) => categoryMap[d] !== undefined ? categoryMap[d] : NaN
             }
         };
 
@@ -125,7 +121,7 @@ export class Visualization {
 
     updateVisualization(data, filters) {
         console.log('Updating visualization with:', { data, filters });
-        
+    
         if (!data || !filters) {
             console.warn('Missing data or filters');
             return;
@@ -151,55 +147,122 @@ export class Visualization {
             console.warn('No valid data points to display');
             return;
         }
-
-        // Update scales based on data ranges
-        this.xScale.domain([
-            d3.min(data, d => d.riskFactors[xMetric]) * 0.95,
-            d3.max(data, d => d.riskFactors[xMetric]) * 1.05
-        ]);
-
-        this.yScale.domain([
-            0,
-            d3.max(data, d => d.outcomes[yMetric]) * 1.1
-        ]);
-
-        // Update axes
-        this.xAxis.transition().duration(750)
-            .call(d3.axisBottom(this.xScale));
-
-        this.yAxis.transition().duration(750)
-            .call(d3.axisLeft(this.yScale));
-
-        // Update axis labels
-        this.xLabel.text(this.metrics[xMetric].label);
-        this.yLabel.text(this.metrics[yMetric].label);
-
-        // Update scatter plot points
-        const points = this.plotArea.selectAll(".point")
-            .data(data, d => d.caseid); // Use caseid as key
-
-        // Enter new points
-        const pointsEnter = points.enter()
-            .append("circle")
-            .attr("class", "point")
-            .attr("r", 5)
-            .attr("opacity", 0.6);
-
-        // Update + Enter
-        points.merge(pointsEnter)
-            .transition()
-            .duration(750)
-            .attr("cx", d => this.xScale(d.riskFactors[xMetric]))
-            .attr("cy", d => this.yScale(d.outcomes[yMetric]))
-            .attr("fill", d => d.riskFactors.emergency ? "#ff4444" : "#2196F3");
-
-        // Remove old points
-        points.exit()
-            .transition()
-            .duration(750)
-            .attr("r", 0)
-            .remove();
-
+    
+        if (xMetric === 'approach' || xMetric === 'optype' || xMetric === 'asa') {
+            // Calculate the average duration for each category using d3.group()
+            const groupedData = d3.group(validData, d => d.riskFactors[xMetric]);
+            const categoryAverages = Array.from(groupedData, ([key, values]) => {
+                return {
+                    key: key,
+                    value: d3.mean(values, d => d.riskFactors.duration)
+                };
+            });
+    
+            console.log('Category averages:', categoryAverages);
+    
+            // Categorical x-axis
+            const uniqueCategories = categoryAverages.map(d => d.key);  // Get unique categories
+            this.xScale = d3.scaleBand()  // Use scaleBand for categorical axis
+                .range([0, this.innerWidth])
+                .domain(uniqueCategories)
+                .padding(0.1);  // Optional: Adjust padding
+    
+            this.yScale.domain([
+                0,
+                d3.max(categoryAverages, d => d.value) * 1.1
+            ]);
+    
+            // Update axes
+            this.xAxis.transition().duration(750)
+                .call(d3.axisBottom(this.xScale));
+    
+            this.yAxis.transition().duration(750)
+                .call(d3.axisLeft(this.yScale));
+    
+            // Update axis labels
+            this.xLabel.text(this.metrics[xMetric].label);
+            this.yLabel.text('Average Duration');
+    
+            // Update bars for bar chart
+            const bars = this.plotArea.selectAll(".bar")
+                .data(categoryAverages, d => d.key);  // Use category key as key
+    
+            // Enter new bars
+            const barsEnter = bars.enter()
+                .append("rect")
+                .attr("class", "bar")
+                .attr("x", d => this.xScale(d.key))
+                .attr("y", d => this.yScale(d.value))
+                .attr("width", this.xScale.bandwidth())
+                .attr("height", d => this.innerHeight - this.yScale(d.value))
+                .attr("fill", "#2196F3")
+                .attr("opacity", 0.6);
+    
+            // Update + Enter
+            bars.merge(barsEnter)
+                .transition()
+                .duration(750)
+                .attr("x", d => this.xScale(d.key))
+                .attr("y", d => this.yScale(d.value))
+                .attr("width", this.xScale.bandwidth())
+                .attr("height", d => this.innerHeight - this.yScale(d.value));
+    
+            // Remove old bars
+            bars.exit()
+                .transition()
+                .duration(750)
+                .attr("height", 0)
+                .remove();
+        } else {
+            // Numerical x-axis (scatter plot)
+            this.xScale = d3.scaleLinear()
+                .range([0, this.innerWidth])
+                .domain([d3.min(validData, d => d.riskFactors[xMetric]) * 0.95, 
+                d3.max(validData, d => d.riskFactors[xMetric]) * 1.05]);
+    
+            this.yScale.domain([
+                0,
+                d3.max(validData, d => d.outcomes[yMetric]) * 1.1
+            ]);
+    
+            // Update axes
+            this.xAxis.transition().duration(750)
+                .call(d3.axisBottom(this.xScale));
+    
+            this.yAxis.transition().duration(750)
+                .call(d3.axisLeft(this.yScale));
+    
+            // Update axis labels
+            this.xLabel.text(this.metrics[xMetric].label);
+            this.yLabel.text(this.metrics[yMetric].label);
+    
+            // Update scatter plot points
+            const points = this.plotArea.selectAll(".point")
+                .data(validData, d => d.caseid); // Use caseid as key
+    
+            // Enter new points
+            const pointsEnter = points.enter()
+                .append("circle")
+                .attr("class", "point")
+                .attr("r", 5)
+                .attr("opacity", 0.6);
+    
+            // Update + Enter
+            points.merge(pointsEnter)
+                .transition()
+                .duration(750)
+                .attr("cx", d => this.xScale(d.riskFactors[xMetric]))
+                .attr("cy", d => this.yScale(d.outcomes[yMetric]))
+                .attr("fill", d => d.riskFactors.emergency ? "#ff4444" : "#2196F3");
+    
+            // Remove old points
+            points.exit()
+                .transition()
+                .duration(750)
+                .attr("r", 0)
+                .remove();
+        }
+        
         // Update tooltips
         this.updateTooltips(xMetric, yMetric);
     }

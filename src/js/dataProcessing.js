@@ -53,27 +53,8 @@ class DataProcessor {
         return duration > 0 ? duration/ 3600 : null;
     }  
 
-    // Dynamically generate a map for categorical values
-    generateCategoryMap(categoryField) {
-        const uniqueValues = [...new Set(this.rawData.map(record => record[categoryField]))].filter(value => value !== null);
-        return uniqueValues.reduce((map, value, index) => {
-            map[value] = index + 1;  // Assign a unique index for each unique value
-            return map;
-        }, {});
-    }
-
-    // Convert categorical field to numeric using the generated map
-    convertCategoryToNumeric(categoryField, categoryValue) {
-        if (!this.categoryMaps[categoryField]) {
-            this.categoryMaps[categoryField] = this.generateCategoryMap(categoryField); // Generate map if not already created
-        }
-        return this.categoryMaps[categoryField][categoryValue] !== undefined ? this.categoryMaps[categoryField][categoryValue] : null;
-    }
-
-    // Initialize category maps (for approach and optype)
-    categoryMaps = {};
-
     processData() {
+        console.log('Processing data...');
         this.processedData = this.rawData
             .filter(record => {
                 // Filter records with valid essential fields
@@ -84,7 +65,9 @@ class DataProcessor {
                     record?.asa &&
                     this.safeNumber(record?.opstart) &&
                     this.safeNumber(record?.opend) &&
-                    record?.department
+                    record?.department &&
+                    record?.approach &&  // Check if approach is present
+                    record?.optype  
                 );
             })
             .map(record => ({
@@ -94,15 +77,15 @@ class DataProcessor {
                     age: this.safeNumber(record.age),
                     bmi: this.safeNumber(record.bmi),
                     asa: this.convertASA(record.asa),
-                    emergency: record.emop === "1" || record.emop === 1 ? 1 : 0
+                    emergency: record.emop === "1" || record.emop === 1 ? 1 : 0,
+                    approach: record.approach, 
+                    optype: record.optype
                 },
                 outcomes: {
                     duration: this.calculateDuration(
                         this.safeNumber(record.opstart),
                         this.safeNumber(record.opend)
-                    ),
-                    approach: this.convertCategoryToNumeric('approach', record.approach),  // Convert approach to numeric
-                    optype: this.convertCategoryToNumeric('optype', record.optype)  // Convert optype to numeric
+                    )
                 }
             }))
             .filter(record => {
@@ -111,10 +94,10 @@ class DataProcessor {
                     record.riskFactors.age > 0 && record.riskFactors.age < 120 &&
                     record.riskFactors.bmi > 10 && record.riskFactors.bmi < 100 &&
                     record.riskFactors.asa >= 1 && record.riskFactors.asa <= 6 &&
-                    record.outcomes.duration > 0 &&
-                    (record.outcomes.approach === null || record.outcomes.approach >= 0)
+                    record.outcomes.duration > 0
                 );
             });
+        console.log('Processed data:', this.processedData.length, 'records');
     }
 
     getFilteredData(filters = {}) {
