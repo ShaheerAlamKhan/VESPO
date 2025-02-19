@@ -11,7 +11,7 @@ export class Visualization {
 
         this.metrics = {
             // Risk Factors
-             // Risk Factors
+            // Risk Factors
             // Risk Factors
             age: {
                 label: "Patient Age (years)",
@@ -27,16 +27,18 @@ export class Visualization {
             },
             // Outcomes
             duration: {
-                label: "Surgery Duration (minutes)",
-                format: d => d ? `${(d/60).toFixed(0)} min` : 'N/A'
+                label: "Surgery Duration (hours)",
+                format: d => d ? `${(d).toFixed(2)} hours` : 'N/A'
             },
-            icu_days: {
-                label: "ICU Days",
-                format: d => d ? `${d} days` : 'N/A'
+            approach: {
+                label: "Surgery Approach",
+                format: d => d ? `${d}` : 'N/A', // display categorical label as is
+                toNumeric: (d, categoryMap) => categoryMap[d] !== undefined ? categoryMap[d] : NaN
             },
-            death_inhosp: {
-                label: "Mortality Rate",
-                format: d => d ? `${(d * 100).toFixed(1)}%` : 'N/A'
+            optype: {
+                label: "Surgery Type",
+                format: d => d ? `${d}` : 'N/A', // display categorical label as is
+                toNumeric: (d, categoryMap) => categoryMap[d] !== undefined ? categoryMap[d] : NaN
             }
         };
 
