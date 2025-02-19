@@ -3,7 +3,6 @@ import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
 
 export class Visualization {
   constructor() {
-    // Dimensions for scatter plot (also used by other views)
     this.width = 1000;
     this.height = 500;
     this.margin = { top: 40, right: 100, bottom: 60, left: 60 };
@@ -11,7 +10,6 @@ export class Visualization {
     this.innerHeight = this.height - this.margin.top - this.margin.bottom;
 
     this.metrics = {
-      // Risk Factors
       age: {
         label: "Patient Age (years)",
         format: (d) => (d ? `${d} years` : "N/A"),
@@ -24,7 +22,6 @@ export class Visualization {
         label: "ASA Score",
         format: (d) => (d ? `${d} ASA` : "N/A"),
       },
-      // Outcomes
       duration: {
         label: "Surgery Duration (hours)",
         format: (d) => (d ? `${d.toFixed(2)} hours` : "N/A"),
@@ -51,7 +48,7 @@ export class Visualization {
   }
 
   setupVisualization() {
-    // Create SVG container for the scatter plot view
+    // Create SVG container for scatter plot
     this.svg = d3
       .select("#visualization")
       .append("svg")
@@ -74,16 +71,16 @@ export class Visualization {
       .attr("transform", `translate(0,${this.innerHeight})`);
     this.yAxis = this.plotArea.append("g").attr("class", "y-axis");
 
-    // Add axis labels
+    // Add axis labels with additional class "axis-label"
     this.xLabel = this.plotArea
       .append("text")
-      .attr("class", "x-label")
+      .attr("class", "x-label axis-label")
       .attr("text-anchor", "middle")
       .attr("x", this.innerWidth / 2)
       .attr("y", this.innerHeight + 40);
     this.yLabel = this.plotArea
       .append("text")
-      .attr("class", "y-label")
+      .attr("class", "y-label axis-label")
       .attr("text-anchor", "middle")
       .attr("transform", "rotate(-90)")
       .attr("x", -this.innerHeight / 2)
@@ -104,32 +101,37 @@ export class Visualization {
     const legend = this.svg
       .append("g")
       .attr("class", "legend")
-      .attr("transform", `translate(${this.width - 120},20)`);
+      .attr("transform", `translate(${this.width-140},20)`);
 
-    // Emergency status legend for scatter plot
+    // Non-Emergency Legend
     legend
       .append("circle")
       .attr("cx", 0)
       .attr("cy", 0)
       .attr("r", 5)
-      .attr("fill", "#2196F3");
+      .attr("fill", "#2196F3")
+      .attr("class", "legend-circle non-emergency");
     legend
       .append("text")
       .attr("x", 10)
       .attr("y", 5)
-      .text("Non-Emergency");
+      .text("Non-Emergency")
+      .attr("class", "legend-text");
 
+    // Emergency Legend
     legend
       .append("circle")
       .attr("cx", 0)
       .attr("cy", 20)
       .attr("r", 5)
-      .attr("fill", "#ff4444");
+      .attr("fill", "#ff4444")
+      .attr("class", "legend-circle emergency");
     legend
       .append("text")
       .attr("x", 10)
       .attr("y", 25)
-      .text("Emergency");
+      .text("Emergency")
+      .attr("class", "legend-text");
   }
 
   updateVisualization(data, filters) {
@@ -145,7 +147,6 @@ export class Visualization {
     console.log("Metrics:", { xMetric, yMetric });
     console.log("Sample data point:", data[0]);
 
-    // Get valid data points only
     const validData = data.filter(
       (d) =>
         d.riskFactors &&
@@ -170,7 +171,6 @@ export class Visualization {
       ]);
     }
 
-    // Update scales based on data ranges
     this.xScale.domain([
       d3.min(data, (d) => d.riskFactors[xMetric]) * 0.95,
       d3.max(data, (d) => d.riskFactors[xMetric]) * 1.05,
@@ -180,15 +180,12 @@ export class Visualization {
       d3.max(data, (d) => d.outcomes[yMetric]) * 1.1,
     ]);
 
-    // Update axes
     this.xAxis.transition().duration(750).call(d3.axisBottom(this.xScale));
     this.yAxis.transition().duration(750).call(d3.axisLeft(this.yScale));
 
-    // Update axis labels
     this.xLabel.text(this.metrics[xMetric].label);
     this.yLabel.text(this.metrics[yMetric].label);
 
-    // Update scatter plot points
     const points = this.plotArea.selectAll(".point").data(data, (d) => d.caseid);
     const pointsEnter = points
       .enter()
@@ -212,7 +209,6 @@ export class Visualization {
       .attr("r", 0)
       .remove();
 
-    // Update tooltips for scatter plot
     this.updateTooltips(xMetric, yMetric);
   }
 
@@ -240,17 +236,13 @@ export class Visualization {
       });
   }
 
-  // New method for rendering the sunburst view with hierarchical aggregation,
-  // dynamic color schemes, on–arc labels, and a central hover label.
   updateSunburst(data, filters) {
-    // Clear any existing SVG (e.g., the scatter plot)
     d3.select("#visualization").select("svg").remove();
 
     const width = 928;
     const height = width;
     const radius = width / 6;
 
-    // Helper functions for binning age and BMI
     function binAge(age) {
       if (age < 20) return "<20";
       else if (age < 40) return "20-39";
@@ -265,12 +257,8 @@ export class Visualization {
       else return "Obese";
     }
 
-    // Determine the selected metric:
-    // For death mode, we now aggregate the actual number of deaths.
-    // For duration mode, we sum the surgery hours.
-    const metric = filters.outcome; // "death_inhosp" or "duration"
+    const metric = filters.outcome;
 
-    // Build hierarchical data using the selected metric.
     function prepareSunburstData(data, metric) {
       const levels = [
         (d) => (d.riskFactors.emergency === 1 ? "Emergency" : "Non-Emergency"),
@@ -282,10 +270,9 @@ export class Visualization {
           d.riskFactors.asa != null ? `ASA ${d.riskFactors.asa}` : "ASA Missing",
       ];
       if (metric === "death_inhosp") {
-        // For death mode, each record contributes 0 or 1 death.
         const root = { name: "All", totalDeaths: 0, children: {} };
         data.forEach((d) => {
-          let death = d.outcomes.death_inhosp; // 0 or 1
+          let death = d.outcomes.death_inhosp;
           let node = root;
           node.totalDeaths += death;
           levels.forEach((levelFn) => {
@@ -306,7 +293,6 @@ export class Visualization {
         }
         return convert(root);
       } else {
-        // For duration, sum the duration values.
         const root = { name: "All", total: 0, children: {} };
         data.forEach((d) => {
           let value = d.outcomes.duration;
@@ -334,14 +320,12 @@ export class Visualization {
 
     const hierarchicalData = prepareSunburstData(data, metric);
 
-    // Create the SVG container.
     const svg = d3
       .select("#visualization")
       .append("svg")
       .attr("viewBox", [-width / 2, -height / 2, width, width])
       .style("font", "10px sans-serif");
 
-    // Add a central label for showing hovered values.
     const centralLabel = svg
       .append("text")
       .attr("class", "central-label")
@@ -352,10 +336,8 @@ export class Visualization {
       .style("pointer-events", "none")
       .style("visibility", "hidden");
 
-    // Define color scheme.
     let color;
     if (metric === "death_inhosp") {
-      // For death mode, use red for Emergency and blue for Non-Emergency.
       color = (d) => {
         const emergencyNode = d.ancestors().find((n) => n.depth === 1);
         return emergencyNode && emergencyNode.data.name === "Emergency"
@@ -363,7 +345,6 @@ export class Visualization {
           : "blue";
       };
     } else {
-      // For duration, use a default ordinal color scale.
       color = d3.scaleOrdinal(
         d3.quantize(
           d3.interpolateRainbow,
@@ -372,7 +353,6 @@ export class Visualization {
       );
     }
 
-    // Compute partition layout.
     const rootNode = d3
       .hierarchy(hierarchicalData)
       .sum((d) => d.value)
@@ -390,7 +370,6 @@ export class Visualization {
       .innerRadius((d) => d.y0 * radius)
       .outerRadius((d) => Math.max(d.y0 * radius, d.y1 * radius - 1));
 
-    // Draw arcs.
     const path = svg
       .append("g")
       .selectAll("path")
@@ -426,7 +405,6 @@ export class Visualization {
         centralLabel.style("visibility", "hidden");
       });
 
-    // Show labels only if the arc is sufficiently large.
     function labelVisible(d) {
       return d.y1 <= 3 && d.y0 >= 1 && (d.y1 - d.y0) * (d.x1 - d.x0) > 0.03;
     }
@@ -443,12 +421,12 @@ export class Visualization {
       .selectAll("text")
       .data(rootNode.descendants().slice(1))
       .join("text")
+      .attr("class", "sunburst-label")
       .attr("dy", "0.35em")
       .attr("fill-opacity", (d) => +labelVisible(d.current))
       .attr("transform", (d) => labelTransform(d.current))
       .text((d) => d.data.name);
 
-    // Add a background reset circle so that clicking on whitespace resets the view.
     const parent = svg
       .append("circle")
       .datum(rootNode)

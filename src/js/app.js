@@ -14,13 +14,20 @@ async function initializeApp() {
     updateVisualization();
     setupEventListeners();
     setupTabs();
+    
+    // Set up Dark Mode toggle switch
+    const darkModeToggle = document.getElementById("dark-mode-toggle");
+    if (darkModeToggle) {
+      darkModeToggle.addEventListener("change", () => {
+        document.body.classList.toggle("dark-mode");
+      });
+    }
   } catch (error) {
     console.error("Error initializing app:", error);
   }
 }
 
 function setupEventListeners() {
-  // Ensure these IDs match your HTML elements
   document.getElementById("risk-factor")?.addEventListener("change", () => {
     if (document.getElementById("scatter-tab").classList.contains("active")) {
       updateVisualization();
@@ -48,7 +55,6 @@ function updateVisualization() {
   const filters = {
     riskFactor: document.getElementById("risk-factor")?.value || "age",
     outcome: document.getElementById("outcome")?.value || "duration",
-    // The emergency filter is not shown in the sidebar so default remains empty.
     emergency: "",
     department: document.getElementById("department")?.value || ""
   };
@@ -81,7 +87,6 @@ function setupTabs() {
   scatterTab.addEventListener("click", () => {
     scatterTab.classList.add("active");
     sunburstTab.classList.remove("active");
-    // Clear visualization container and reinitialize the scatter plot SVG container
     document.getElementById("visualization").innerHTML = "";
     visualization.setupVisualization();
     updateVisualization();
@@ -90,7 +95,6 @@ function setupTabs() {
   sunburstTab.addEventListener("click", () => {
     sunburstTab.classList.add("active");
     scatterTab.classList.remove("active");
-    // Clear visualization container and render the sunburst
     document.getElementById("visualization").innerHTML = "";
     updateSunburst();
   });

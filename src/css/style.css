@@ -3,32 +3,38 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-  }
+}
   
-  body {
+body {
     font-family: "Arial", sans-serif;
     line-height: 1.6;
     color: #333;
     background-color: #f4f4f4;
-  }
-  
-  /* Layout */
-  .container {
+}
+
+/* Dark Mode Overrides for Body */
+body.dark-mode {
+    background-color: #000;
+    color: #fff;
+}
+
+/* Container Layout */
+.container {
     display: grid;
     grid-template-columns: 300px 1fr;
     min-height: 100vh;
     gap: 20px;
     padding: 20px;
-  }
+}
   
-  /* Main Content Styles */
-  .main-content {
+/* Main Content */
+.main-content {
     display: flex;
     flex-direction: column;
     gap: 20px;
-  }
+}
   
-  .top-filters {
+.top-filters {
     background: white;
     padding: 15px;
     border-radius: 8px;
@@ -36,39 +42,39 @@
     gap: 15px;
     flex-wrap: wrap;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
+}
   
-  .visualization-container {
+.visualization-container {
     background: white;
     padding: 20px;
     border-radius: 8px;
     flex-grow: 1;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     min-height: 500px;
-  }
+}
   
-  /* Form Elements */
-  select {
+/* Form Elements */
+select {
     width: 100%;
     padding: 8px 12px;
     border: 1px solid #ddd;
     border-radius: 4px;
     background-color: white;
     font-size: 14px;
-  }
+}
   
-  select:hover {
+select:hover {
     border-color: #bbb;
-  }
+}
   
-  select:focus {
+select:focus {
     outline: none;
     border-color: #3498db;
     box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
-  }
+}
   
-  /* Tooltip */
-  .tooltip {
+/* Tooltip */
+.tooltip {
     position: absolute;
     background: rgba(0, 0, 0, 0.8);
     color: white;
@@ -78,55 +84,55 @@
     pointer-events: none;
     opacity: 0;
     transition: opacity 0.2s;
-  }
+}
   
-  /* Responsive Design */
-  @media (max-width: 1024px) {
+/* Responsive Design */
+@media (max-width: 1024px) {
     .container {
       grid-template-columns: 250px 1fr;
     }
-  }
+}
   
-  @media (max-width: 768px) {
+@media (max-width: 768px) {
     .container {
       grid-template-columns: 1fr;
     }
-  }
+}
   
-  /* Sidebar Component Styles */
-  .sidebar {
+/* Sidebar Styles */
+.sidebar {
     background: white;
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
+}
   
-  .filter-group {
+.filter-group {
     margin-bottom: 20px;
-  }
+}
   
-  .filter-group h3 {
+.filter-group h3 {
     color: #2c3e50;
     margin-bottom: 10px;
     font-size: 16px;
     font-weight: 600;
-  }
+}
   
-  .filter-group select {
+.filter-group select {
     margin-bottom: 10px;
-  }
+}
   
-  /* Sidebar Responsive Behavior */
-  @media (max-width: 768px) {
+/* Sidebar Sticky for Mobile */
+@media (max-width: 768px) {
     .sidebar {
       position: sticky;
       top: 0;
       z-index: 100;
     }
-  }
+}
   
-  /* Metric Controls */
-  .metric-controls {
+/* Metric Controls */
+.metric-controls {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -134,27 +140,27 @@
     padding: 10px;
     background: #f8f9fa;
     border-radius: 4px;
-  }
+}
   
-  .metric-selector {
+.metric-selector {
     display: flex;
     align-items: center;
     gap: 10px;
-  }
+}
   
-  .metric-selector label {
+.metric-selector label {
     font-weight: 600;
     color: #2c3e50;
-  }
+}
   
-  .metric-selector select {
+.metric-selector select {
     padding: 6px 12px;
     border: 1px solid #ddd;
     border-radius: 4px;
     background-color: white;
-  }
+}
   
-  .control-btn {
+.control-btn {
     padding: 8px 16px;
     background-color: #3498db;
     color: white;
@@ -162,27 +168,27 @@
     border-radius: 4px;
     cursor: pointer;
     transition: background-color 0.2s;
-  }
+}
   
-  .control-btn:hover {
+.control-btn:hover {
     background-color: #2980b9;
-  }
+}
   
-  /* Visualization Elements */
-  .metric-line {
+/* Visualization Elements */
+.metric-line {
     transition: opacity 0.3s;
-  }
+}
   
-  .point {
+.point {
     cursor: pointer;
     transition: r 0.2s;
-  }
+}
   
-  .point:hover {
+.point:hover {
     r: 8;
-  }
+}
   
-  .tooltip {
+.tooltip {
     position: absolute;
     padding: 10px;
     background: rgba(0, 0, 0, 0.8);
@@ -191,23 +197,132 @@
     font-size: 12px;
     pointer-events: none;
     line-height: 1.4;
-  }
+}
   
-  /* Tabs */
-  .tabs {
+/* Tabs */
+.tabs {
     margin-bottom: 10px;
-  }
+}
   
-  .tab {
+.tab {
     padding: 8px 16px;
     border: none;
     background: #ddd;
     cursor: pointer;
     margin-right: 5px;
-  }
+}
   
-  .tab.active {
+.tab.active {
     background: #3498db;
     color: white;
-  }
+}
   
+/* Dark Mode Specific Styles */
+body.dark-mode .container,
+body.dark-mode .sidebar,
+body.dark-mode .main-content,
+body.dark-mode .visualization-container {
+    background-color: #222;
+    color: #fff;
+}
+  
+body.dark-mode .filter-group h3 {
+    color: #ddd;
+}
+  
+body.dark-mode select {
+    background-color: #333;
+    color: #fff;
+    border-color: #555;
+}
+  
+body.dark-mode .tabs .tab {
+    background: #444;
+    color: #fff;
+}
+  
+body.dark-mode .tabs .tab.active {
+    background: #3498db;
+    color: #fff;
+}
+  
+body.dark-mode .tooltip {
+    background: rgba(255, 255, 255, 0.8);
+    color: #000;
+}
+  
+/* Dark Mode for Axis Labels */
+body.dark-mode .x-label,
+body.dark-mode .y-label,
+body.dark-mode .axis-label {
+    fill: #fff;
+}
+  
+/* Dark Mode for Legend Text */
+body.dark-mode .legend-text {
+    fill: #fff;
+}
+  
+/* Dark Mode for Sunburst Labels */
+body.dark-mode .sunburst-label {
+    fill: #fff;
+}
+  
+/* Dark Mode for Legend Circles */
+body.dark-mode .legend-circle.non-emergency {
+    fill: #de690c; /* Inverted color for blue */
+}
+  
+body.dark-mode .legend-circle.emergency {
+    fill: #00bbbb; /* Inverted color for red */
+}
+  
+/* Toggle Switch Styles */
+#toggle-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+}
+
+.switch input { 
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: #ccc;
+  transition: 0.4s;
+  border-radius: 34px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: 0.4s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: #2196F3;
+}
+
+input:checked + .slider:before {
+  transform: translateX(26px);
+}
