@@ -1,43 +1,41 @@
 // app.js
 import { dataProcessor } from './dataProcessing.js';
-import { visualization } from './visualization.js'
+import { visualization } from './visualization.js';
 
 async function initializeApp() {
     try {
         await dataProcessor.fetchData();
-        
-        // Initial visualization
-        const initialData = dataProcessor.getFilteredData();
-        visualization.updateVisualization(initialData);
-        
-        // Set up filter event listeners
-        setupFilters();
+        updateVisualization();
+        setupEventListeners();
     } catch (error) {
         console.error('Error initializing app:', error);
     }
 }
 
-function setupFilters() {
-    // Add event listeners to your filter elements
-    document.querySelectorAll('.filter-select').forEach(select => {
-        select.addEventListener('change', handleFilterChange);
-    });
+function setupEventListeners() {
+    // Make sure these IDs match your HTML
+    document.getElementById('risk-factor')?.addEventListener('change', updateVisualization);
+    document.getElementById('outcome')?.addEventListener('change', updateVisualization);
+    document.getElementById('emergency')?.addEventListener('change', updateVisualization);
+    document.getElementById('department')?.addEventListener('change', updateVisualization);
 }
 
-function handleFilterChange() {
+function updateVisualization() {
     const filters = {
-        surgicalApproach: document.getElementById('surgical-approach').value,
-        demographics: document.getElementById('demographics').value,
-        anesthesia: document.getElementById('anesthesia').value,
-        anesthetic: document.getElementById('anesthetic').value,
-        operationTime: document.getElementById('operation-time').value,
-        surgeryType: document.getElementById('surgery-type').value,
-        diagnosis: document.getElementById('diagnosis').value
+        riskFactor: document.getElementById('risk-factor')?.value || 'age',  // provide defaults
+        outcome: document.getElementById('outcome')?.value || 'duration',
+        emergency: document.getElementById('emergency')?.value || '',
+        department: document.getElementById('department')?.value || ''
     };
+
+    // Debug log
+    console.log('Filters:', filters);
+    console.log('Processed Data:', dataProcessor.processedData);
     
     const filteredData = dataProcessor.getFilteredData(filters);
-    visualization.updateVisualization(filteredData);
+    console.log('Filtered Data:', filteredData);
+    
+    visualization.updateVisualization(filteredData, filters);
 }
 
-// Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', initializeApp);

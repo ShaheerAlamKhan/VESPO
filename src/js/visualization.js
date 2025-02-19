@@ -1,45 +1,46 @@
-// visualization.js
 import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
 
 export class Visualization {
     constructor() {
+        // Define dimensions
         this.width = 900;
         this.height = 500;
         this.margin = { top: 40, right: 100, bottom: 60, left: 60 };
-        
         this.innerWidth = this.width - this.margin.left - this.margin.right;
         this.innerHeight = this.height - this.margin.top - this.margin.bottom;
-        
+
         this.metrics = {
-            duration: {
-                label: "Surgery Duration (minutes)",
-                accessor: d => (d.opend - d.opstart) / 60,
-                format: d => `${d.toFixed(0)} min`
-            },
-            icu_days: {
-                label: "ICU Days",
-                accessor: d => d.icu_days,
-                format: d => `${d} days`
-            },
-            death_inhosp: {
-                label: "In-hospital Mortality Rate",
-                accessor: d => d.death_inhosp,
-                format: d => `${(d * 100).toFixed(1)}%`
+            // Risk Factors
+             // Risk Factors
+            // Risk Factors
+            age: {
+                label: "Patient Age (years)",
+                format: d => d ? `${d} years` : 'N/A'
             },
             bmi: {
                 label: "BMI",
-                accessor: d => d.bmi,
-                format: d => d.toFixed(1)
+                format: d => d ? d.toFixed(1) : 'N/A'
             },
-            age: {
-                label: "Age",
-                accessor: d => d.age,
-                format: d => `${d} years`
+            asa: {
+                label: "ASA Score",
+                format: d => d ? `${d} ASA` : 'N/A'
+            },
+            // Outcomes
+            duration: {
+                label: "Surgery Duration (minutes)",
+                format: d => d ? `${(d/60).toFixed(0)} min` : 'N/A'
+            },
+            icu_days: {
+                label: "ICU Days",
+                format: d => d ? `${d} days` : 'N/A'
+            },
+            death_inhosp: {
+                label: "Mortality Rate",
+                format: d => d ? `${(d * 100).toFixed(1)}%` : 'N/A'
             }
         };
 
         this.setupVisualization();
-        this.setupControls();
     }
 
     setupVisualization() {
@@ -53,16 +54,8 @@ export class Visualization {
         this.plotArea = this.svg.append("g")
             .attr("transform", `translate(${this.margin.left},${this.margin.top})`);
 
-        // Add clip path for the plot area
-        this.plotArea.append("defs")
-            .append("clipPath")
-            .attr("id", "plot-area-clip")
-            .append("rect")
-            .attr("width", this.innerWidth)
-            .attr("height", this.innerHeight);
-
         // Initialize scales
-        this.xScale = d3.scalePoint()
+        this.xScale = d3.scaleLinear()
             .range([0, this.innerWidth]);
 
         this.yScale = d3.scaleLinear()
@@ -90,137 +83,141 @@ export class Visualization {
             .attr("x", -this.innerHeight / 2)
             .attr("y", -40);
 
-        // Create legend
-        this.legend = this.svg.append("g")
-            .attr("class", "legend")
-            .attr("transform", `translate(${this.width - this.margin.right + 20},${this.margin.top})`);
-
         // Create tooltip
         this.tooltip = d3.select("body").append("div")
             .attr("class", "tooltip")
             .style("opacity", 0);
+
+        // Add legend
+        this.setupLegend();
     }
 
-    setupControls() {
-        this.primaryMetric = "duration";
-        this.overlayActive = false;
+    setupLegend() {
+        const legend = this.svg.append("g")
+            .attr("class", "legend")
+            .attr("transform", `translate(${this.width - 120},20)`);
 
-        d3.select("#primary-metric").on("change", (event) => {
-            this.primaryMetric = event.target.value;
-            this.updateVisualization(this.currentData);
-        });
+        // Emergency status legend
+        legend.append("circle")
+            .attr("cx", 0)
+            .attr("cy", 0)
+            .attr("r", 5)
+            .attr("fill", "#2196F3");
 
-        d3.select("#toggle-overlay").on("click", () => {
-            this.overlayActive = !this.overlayActive;
-            this.updateVisualization(this.currentData);
-        });
+        legend.append("text")
+            .attr("x", 10)
+            .attr("y", 5)
+            .text("Non-Emergency");
+
+        legend.append("circle")
+            .attr("cx", 0)
+            .attr("cy", 20)
+            .attr("r", 5)
+            .attr("fill", "#ff4444");
+
+        legend.append("text")
+            .attr("x", 10)
+            .attr("y", 25)
+            .text("Emergency");
     }
 
-    processData(data) {
-        // Group data by department and calculate averages
-        const groupedData = d3.group(data, d => d.department);
+    updateVisualization(data, filters) {
+        console.log('Updating visualization with:', { data, filters });
         
-        return Array.from(groupedData, ([department, values]) => {
-            const metrics = {};
-            Object.keys(this.metrics).forEach(metric => {
-                const accessor = this.metrics[metric].accessor;
-                metrics[metric] = d3.mean(values, accessor);
-            });
-            return {
-                department,
-                values: metrics
-            };
-        });
-    }
+        if (!data || !filters) {
+            console.warn('Missing data or filters');
+            return;
+        }
+    
+        const xMetric = filters.riskFactor;
+        const yMetric = filters.outcome;
+    
+        console.log('Metrics:', { xMetric, yMetric });
+        console.log('Sample data point:', data[0]);
+    
+        // Get valid data points only
+        const validData = data.filter(d => 
+            d.riskFactors && 
+            d.outcomes && 
+            !isNaN(d.riskFactors[xMetric]) && 
+            !isNaN(d.outcomes[yMetric])
+        );
+    
+        console.log('Valid data points:', validData.length);
+    
+        if (validData.length === 0) {
+            console.warn('No valid data points to display');
+            return;
+        }
 
-    updateVisualization(rawData) {
-        this.currentData = rawData;
-        const data = this.processData(rawData);
+        // Update scales based on data ranges
+        this.xScale.domain([
+            d3.min(data, d => d.riskFactors[xMetric]) * 0.95,
+            d3.max(data, d => d.riskFactors[xMetric]) * 1.05
+        ]);
 
-        // Update scales
-        this.xScale.domain(data.map(d => d.department));
-        
-        const primaryAccessor = d => d.values[this.primaryMetric];
-        const primaryExtent = d3.extent(data, primaryAccessor);
-        this.yScale.domain([0, primaryExtent[1] * 1.1]);
+        this.yScale.domain([
+            0,
+            d3.max(data, d => d.outcomes[yMetric]) * 1.1
+        ]);
 
         // Update axes
-        this.xAxis.call(d3.axisBottom(this.xScale))
-            .selectAll("text")
-            .attr("transform", "rotate(-45)")
-            .style("text-anchor", "end");
+        this.xAxis.transition().duration(750)
+            .call(d3.axisBottom(this.xScale));
 
-        this.yAxis.call(d3.axisLeft(this.yScale));
+        this.yAxis.transition().duration(750)
+            .call(d3.axisLeft(this.yScale));
 
-        // Update labels
-        this.xLabel.text("Department");
-        this.yLabel.text(this.metrics[this.primaryMetric].label);
+        // Update axis labels
+        this.xLabel.text(this.metrics[xMetric].label);
+        this.yLabel.text(this.metrics[yMetric].label);
 
-        // Create line generator
-        const line = d3.line()
-            .x(d => this.xScale(d.department))
-            .y(d => this.yScale(d.values[this.primaryMetric]));
-
-        // Update or create lines
-        const lines = this.plotArea.selectAll(".metric-line")
-            .data([data]);
-
-        lines.enter()
-            .append("path")
-            .attr("class", "metric-line")
-            .merge(lines)
-            .transition()
-            .duration(750)
-            .attr("d", line)
-            .attr("fill", "none")
-            .attr("stroke", "#3498db")
-            .attr("stroke-width", 2);
-
-        // Update or create points
+        // Update scatter plot points
         const points = this.plotArea.selectAll(".point")
-            .data(data);
+            .data(data, d => d.caseid); // Use caseid as key
 
+        // Enter new points
         const pointsEnter = points.enter()
             .append("circle")
-            .attr("class", "point");
+            .attr("class", "point")
+            .attr("r", 5)
+            .attr("opacity", 0.6);
 
+        // Update + Enter
         points.merge(pointsEnter)
             .transition()
             .duration(750)
-            .attr("cx", d => this.xScale(d.department))
-            .attr("cy", d => this.yScale(d.values[this.primaryMetric]))
-            .attr("r", 6)
-            .attr("fill", "#3498db");
+            .attr("cx", d => this.xScale(d.riskFactors[xMetric]))
+            .attr("cy", d => this.yScale(d.outcomes[yMetric]))
+            .attr("fill", d => d.riskFactors.emergency ? "#ff4444" : "#2196F3");
 
-        // Add hover effects
-        this.addHoverEffects(points.merge(pointsEnter));
+        // Remove old points
+        points.exit()
+            .transition()
+            .duration(750)
+            .attr("r", 0)
+            .remove();
 
-        // Remove old elements
-        points.exit().remove();
-        lines.exit().remove();
+        // Update tooltips
+        this.updateTooltips(xMetric, yMetric);
     }
 
-    addHoverEffects(points) {
-        points
+    updateTooltips(xMetric, yMetric) {
+        this.plotArea.selectAll(".point")
             .on("mouseover", (event, d) => {
-                this.tooltip.transition()
-                    .duration(200)
-                    .style("opacity", .9);
-                
-                const primaryValue = this.metrics[this.primaryMetric]
-                    .format(d.values[this.primaryMetric]);
-                
-                this.tooltip.html(
-                    `Department: ${d.department}<br/>
-                     ${this.metrics[this.primaryMetric].label}: ${primaryValue}`
-                )
-                    .style("left", (event.pageX + 5) + "px")
-                    .style("top", (event.pageY - 28) + "px");
+                this.tooltip
+                    .style("opacity", 1)
+                    .html(`
+                        Department: ${d.department}<br/>
+                        ${this.metrics[xMetric].label}: ${this.metrics[xMetric].format(d.riskFactors[xMetric])}<br/>
+                        ${this.metrics[yMetric].label}: ${this.metrics[yMetric].format(d.outcomes[yMetric])}<br/>
+                        Emergency: ${d.riskFactors.emergency ? "Yes" : "No"}
+                    `)
+                    .style("left", (event.pageX + 10) + "px")
+                    .style("top", (event.pageY - 10) + "px");
             })
             .on("mouseout", () => {
-                this.tooltip.transition()
-                    .duration(500)
-                    .style("opacity", 0);
+                this.tooltip.style("opacity", 0);
             });
     }
 }

@@ -9,71 +9,51 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <!-- Main container -->
     <div class="container">
-        <!-- Left Sidebar -->
         <aside class="sidebar">
-            <!-- Filter Groups -->
-
+            <!-- Risk Factor Filters -->
             <div class="filter-group">
-                <h3>Anesthesia</h3>
-                <select id="anesthesia" class="filter-select">
-                    <option value="">Select type...</option>
-                    <option value="general">General</option>
-                    <option value="regional">Regional</option>
-                    <option value="local">Local</option>
+                <h3>Risk Factors (X-Axis)</h3>
+                <select id="risk-factor" class="filter-select">
+                    <option value="age">Age</option>
+                    <option value="bmi">BMI</option>
+                    <option value="asa">ASA Score</option>
                 </select>
             </div>
 
             <div class="filter-group">
-                <h3>Anesthetic</h3>
-                <select id="anesthetic" class="filter-select">
-                    <option value="">Select anesthetic...</option>
-                    <option value="propofol">Propofol</option>
-                    <option value="sevoflurane">Sevoflurane</option>
-                    <option value="desflurane">Desflurane</option>
+                <h3>Risk Factor (X-Axis)</h3>
+                <select id="risk-factor" class="filter-select">
+                    <option value="age">Age</option>
+                    <option value="bmi">BMI</option>
+                    <option value="asa">ASA Score</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <h3>Outcome (Y-Axis)</h3>
+                <select id="outcome" class="filter-select">
+                    <option value="duration">Surgery Duration</option>
+                    <option value="icu_days">ICU Days</option>
+                    <option value="death_inhosp">Mortality Rate</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <h3>Department</h3>
+                <select id="department" class="filter-select">
+                    <option value="">All Departments</option>
                 </select>
             </div>
         </aside>
 
-        <!-- Main Content Area -->
         <main class="main-content">
-            <!-- Top Filter Bar -->
-            <div class="top-filters">
-                <select id="operation-time" class="top-filter-select">
-                    <option value="">Operation Time...</option>
-                    <option value="start">Start Time</option>
-                    <option value="end">End Time</option>
-                    <option value="duration">Duration</option>
-                </select>
-            </div>
-
-            <!-- Visualization Area -->
             <div class="visualization-container">
-                <h2>How do different combinations of patient risk factors affect surgical duration and outcomes?</h2>
-                <div class="metric-controls">
-                    <div class="metric-selector">
-                        <label>Primary Metric:</label>
-                        <select id="primary-metric">
-                            <option value="duration">Surgery Duration</option>
-                            <option value="icu_days">ICU Days</option>
-                            <option value="death_inhosp">In-hospital Mortality</option>
-                            <option value="bmi">BMI</option>
-                            <option value="age">Age</option>
-                        </select>
-                    </div>
-                    <div class="view-controls">
-                        <button id="toggle-overlay" class="control-btn">Toggle Overlay</button>
-                    </div>
-                </div>
-                <div id="visualization">
-                    <!-- D3.js visualization will be inserted here -->
-                </div>
+                <h2>Patient Risk Factors and Surgical Outcomes Analysis</h2>
+                <div id="visualization"></div>
             </div>
         </main>
     </div>
-
-    <!-- Loading Scripts -->
     <script type="module" src="js/app.js"></script>
 </body>
 </html>

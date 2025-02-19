@@ -8,7 +8,6 @@ class DataProcessor {
         this.API_URL = 'https://api.vitaldb.net/cases';
     }
 
-    // Fetch data from VitalDB API
     async fetchData() {
         try {
             const response = await fetch(this.API_URL);
@@ -16,9 +15,8 @@ class DataProcessor {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             
-            // Parse CSV data using PapaParse
             const csvText = await response.text();
-            const parsedData = Papa.parse(csvText, {
+            Papa.parse(csvText, {
                 header: true,
                 dynamicTyping: true,
                 skipEmptyLines: true,
@@ -37,126 +35,109 @@ class DataProcessor {
         }
     }
 
-    // Process raw data into a format suitable for D3
+    // Helper functions for data conversion
+    safeNumber(value) {
+        const num = parseFloat(value);
+        return !isNaN(num) ? num : null;
+    }
+
+    convertASA(asa) {
+        if (!asa) return null;
+        const match = asa.toString().match(/\d+/);
+        return match ? parseInt(match[0]) : null;
+    }
+
+    calculateDuration(start, end) {
+        if (!start || !end) return null;
+        const duration = end - start;
+        return duration > 0 ? duration : null;
+    }
+
     processData() {
         this.processedData = this.rawData
             .filter(record => {
-                // Enhanced null/undefined/NaN checking for critical fields
+                // Filter records with valid essential fields
                 return Boolean(
-                    record?.caseid && 
-                    record?.subjectid &&
-                    record?.department &&
-                    !isNaN(parseFloat(record?.age)) &&
-                    !isNaN(parseFloat(record?.opstart)) && 
-                    !isNaN(parseFloat(record?.opend)) &&
-                    parseFloat(record?.opend) > parseFloat(record?.opstart) // Ensure valid duration
+                    record?.caseid &&
+                    this.safeNumber(record?.age) &&
+                    this.safeNumber(record?.bmi) &&
+                    record?.asa &&
+                    this.safeNumber(record?.opstart) &&
+                    this.safeNumber(record?.opend) &&
+                    record?.department
                 );
             })
-            .map(record => {
-                // Helper function to safely parse numbers
-                const safeNumber = (value) => {
-                    const parsed = parseFloat(value);
-                    return !isNaN(parsed) ? parsed : null;
-                };
-    
-                // Helper function to safely parse strings
-                const safeString = (value) => value || null;
-    
-                return {
-                    id: safeString(record.caseid),
-                    patientId: safeString(record.subjectid),
-                    surgery: {
-                        type: safeString(record.optype),
-                        name: safeString(record.opname),
-                        approach: safeString(record.approach),
-                        department: safeString(record.department),
-                        diagnosis: safeString(record.dx)
-                    },
-                    timing: {
-                        duration: this.calculateDuration(
-                            safeNumber(record.opstart), 
-                            safeNumber(record.opend)
-                        ),
-                        date: record.casestart ? new Date(record.casestart) : null
-                    },
-                    patient: {
-                        age: safeNumber(record.age),
-                        sex: safeString(record.sex),
-                        bmi: safeNumber(record.bmi),
-                        asa: safeString(record.asa)
-                    },
-                    vitals: {
-                        preop_hb: safeNumber(record.preop_hb),
-                        preop_plt: safeNumber(record.preop_plt),
-                        preop_na: safeNumber(record.preop_na),
-                        preop_k: safeNumber(record.preop_k)
-                    },
-                    medications: {
-                        propofol: safeNumber(record.intraop_ppf),
-                        fentanyl: safeNumber(record.intraop_ftn),
-                        ephedrine: safeNumber(record.intraop_eph),
-                        phenylephrine: safeNumber(record.intraop_phe)
-                    }
-                };
+            .map(record => ({
+                caseid: record.caseid,
+                department: record.department,
+                riskFactors: {
+                    age: this.safeNumber(record.age),
+                    bmi: this.safeNumber(record.bmi),
+                    asa: this.convertASA(record.asa),
+                    emergency: record.emop === "1" || record.emop === 1 ? 1 : 0
+                },
+                outcomes: {
+                    duration: this.calculateDuration(
+                        this.safeNumber(record.opstart),
+                        this.safeNumber(record.opend)
+                    ),
+                    icu_days: this.safeNumber(record.icu_days),
+                    death_inhosp: record.death_inhosp === "1" || record.death_inhosp === 1 ? 1 : 0
+                }
+            }))
+            .filter(record => {
+                // Additional validation of processed data
+                return (
+                    record.riskFactors.age > 0 && record.riskFactors.age < 120 &&
+                    record.riskFactors.bmi > 10 && record.riskFactors.bmi < 100 &&
+                    record.riskFactors.asa >= 1 && record.riskFactors.asa <= 6 &&
+                    record.outcomes.duration > 0 &&
+                    (record.outcomes.icu_days === null || record.outcomes.icu_days >= 0)
+                );
             });
     }
 
-    // Helper function to calculate duration
-    calculateDuration(start, end) {
-        return end - start;
-    }
-
-    // Get data filtered by specific criteria
     getFilteredData(filters = {}) {
-        return this.processedData.filter(record => {
-            return Object.entries(filters).every(([key, value]) => {
-                if (!value) return true; // Skip empty filters
-                
-                // Handle nested objects in our data structure
-                const keys = key.split('.');
-                let recordValue = record;
-                for (const k of keys) {
-                    recordValue = recordValue[k];
-                }
-                
-                return recordValue === value;
-            });
-        });
+        console.log('Getting filtered data with filters:', filters);
+        
+        let filteredData = this.processedData;
+        
+        // Filter by emergency if specified
+        if (filters.emergency !== '') {
+            filteredData = filteredData.filter(record => 
+                record.riskFactors.emergency === parseInt(filters.emergency)
+            );
+        }
+    
+        // Filter by department if specified
+        if (filters.department) {
+            filteredData = filteredData.filter(record => 
+                record.department === filters.department
+            );
+        }
+    
+        console.log('Filtered data:', filteredData);
+        return filteredData;
     }
 
-    // Get unique values for a specific field (useful for filters)
-    getUniqueValues(field) {
-        const keys = field.split('.');
-        return [...new Set(this.processedData.map(record => {
-            let value = record;
-            for (const key of keys) {
-                value = value[key];
-            }
-            return value;
-        }))];
-    }
-
-    // Get summary statistics for a numerical field
-    getFieldStatistics(field) {
-        const values = this.processedData
-            .map(record => {
-                const keys = field.split('.');
-                let value = record;
-                for (const key of keys) {
-                    value = value[key];
-                }
-                return value;
-            })
-            .filter(value => value != null && !isNaN(value));
+    getMetricRange(metric) {
+        const values = this.processedData.map(record => {
+            const [category, field] = metric.split('.');
+            return record[category][field];
+        }).filter(value => value !== null);
 
         return {
             min: Math.min(...values),
             max: Math.max(...values),
-            average: values.reduce((a, b) => a + b, 0) / values.length,
-            count: values.length
+            mean: values.reduce((a, b) => a + b, 0) / values.length
         };
+    }
+
+    getUniqueValues(category, field) {
+        return [...new Set(this.processedData.map(record => 
+            record[category][field]
+        ))].filter(value => value !== null);
     }
 }
 
-// Export a single instance
 export const dataProcessor = new DataProcessor();
