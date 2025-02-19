@@ -50,8 +50,28 @@ class DataProcessor {
     calculateDuration(start, end) {
         if (!start || !end) return null;
         const duration = end - start;
-        return duration > 0 ? duration : null;
+        return duration > 0 ? duration/ 3600 : null;
+    }  
+
+    // Dynamically generate a map for categorical values
+    generateCategoryMap(categoryField) {
+        const uniqueValues = [...new Set(this.rawData.map(record => record[categoryField]))].filter(value => value !== null);
+        return uniqueValues.reduce((map, value, index) => {
+            map[value] = index + 1;  // Assign a unique index for each unique value
+            return map;
+        }, {});
     }
+
+    // Convert categorical field to numeric using the generated map
+    convertCategoryToNumeric(categoryField, categoryValue) {
+        if (!this.categoryMaps[categoryField]) {
+            this.categoryMaps[categoryField] = this.generateCategoryMap(categoryField); // Generate map if not already created
+        }
+        return this.categoryMaps[categoryField][categoryValue] !== undefined ? this.categoryMaps[categoryField][categoryValue] : null;
+    }
+
+    // Initialize category maps (for approach and optype)
+    categoryMaps = {};
 
     processData() {
         this.processedData = this.rawData
@@ -81,8 +101,8 @@ class DataProcessor {
                         this.safeNumber(record.opstart),
                         this.safeNumber(record.opend)
                     ),
-                    icu_days: this.safeNumber(record.icu_days),
-                    death_inhosp: record.death_inhosp === "1" || record.death_inhosp === 1 ? 1 : 0
+                    approach: this.convertCategoryToNumeric('approach', record.approach),  // Convert approach to numeric
+                    optype: this.convertCategoryToNumeric('optype', record.optype)  // Convert optype to numeric
                 }
             }))
             .filter(record => {
@@ -92,7 +112,7 @@ class DataProcessor {
                     record.riskFactors.bmi > 10 && record.riskFactors.bmi < 100 &&
                     record.riskFactors.asa >= 1 && record.riskFactors.asa <= 6 &&
                     record.outcomes.duration > 0 &&
-                    (record.outcomes.icu_days === null || record.outcomes.icu_days >= 0)
+                    (record.outcomes.approach === null || record.outcomes.approach >= 0)
                 );
             });
     }
