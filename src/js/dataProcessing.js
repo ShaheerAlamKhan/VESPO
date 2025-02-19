@@ -16,18 +16,22 @@ class DataProcessor {
             }
             
             const csvText = await response.text();
-            Papa.parse(csvText, {
-                header: true,
-                dynamicTyping: true,
-                skipEmptyLines: true,
-                complete: (results) => {
-                    this.rawData = results.data;
-                    this.processData();
-                    return results.data;
-                },
-                error: (error) => {
-                    console.error('Error parsing CSV:', error);
-                }
+            // Return a Promise to properly handle the async parsing
+            return new Promise((resolve, reject) => {
+                Papa.parse(csvText, {
+                    header: true,
+                    dynamicTyping: true,
+                    skipEmptyLines: true,
+                    complete: (results) => {
+                        this.rawData = results.data;
+                        this.processData();
+                        resolve(results.data);
+                    },
+                    error: (error) => {
+                        console.error('Error parsing CSV:', error);
+                        reject(error);
+                    }
+                });
             });
         } catch (error) {
             console.error('Error fetching data:', error);
@@ -74,48 +78,53 @@ class DataProcessor {
     categoryMaps = {};
 
     processData() {
-        this.processedData = this.rawData
-            .filter(record => {
-                // Filter records with valid essential fields
-                return Boolean(
-                    record?.caseid &&
-                    this.safeNumber(record?.age) &&
-                    this.safeNumber(record?.bmi) &&
-                    record?.asa &&
-                    this.safeNumber(record?.opstart) &&
-                    this.safeNumber(record?.opend) &&
-                    record?.department
-                );
-            })
-            .map(record => ({
-                caseid: record.caseid,
-                department: record.department,
-                riskFactors: {
-                    age: this.safeNumber(record.age),
-                    bmi: this.safeNumber(record.bmi),
-                    asa: this.convertASA(record.asa),
-                    emergency: record.emop === "1" || record.emop === 1 ? 1 : 0
-                },
-                outcomes: {
-                    duration: this.calculateDuration(
-                        this.safeNumber(record.opstart),
-                        this.safeNumber(record.opend)
-                    ),
-                    approach: this.convertCategoryToNumeric('approach', record.approach),  // Convert approach to numeric
-                    optype: this.convertCategoryToNumeric('optype', record.optype)  // Convert optype to numeric
-                }
-            }))
-            .filter(record => {
-                // Additional validation of processed data
-                return (
-                    record.riskFactors.age > 0 && record.riskFactors.age < 120 &&
-                    record.riskFactors.bmi > 10 && record.riskFactors.bmi < 100 &&
-                    record.riskFactors.asa >= 1 && record.riskFactors.asa <= 6 &&
-                    record.outcomes.duration > 0 &&
-                    (record.outcomes.approach === null || record.outcomes.approach >= 0)
-                );
-            });
-    }
+    console.log('Raw data before processing:', this.rawData.length);
+    
+    this.processedData = this.rawData
+        .filter(record => {
+            // Relaxed validation - only check essential fields
+            const isValid = Boolean(
+                record?.caseid &&
+                this.safeNumber(record?.age) > 0 &&
+                this.safeNumber(record?.bmi) > 0 &&
+                this.safeNumber(record?.opstart) >= 0 &&
+                this.safeNumber(record?.opend) > 0 &&
+                record?.department
+            );
+            
+            if (!isValid) {
+                console.log('Invalid record:', record);
+            }
+            return isValid;
+        })
+        .map(record => ({
+            caseid: record.caseid,
+            department: record.department,
+            riskFactors: {
+                age: this.safeNumber(record.age),
+                bmi: this.safeNumber(record.bmi),
+                asa: this.convertASA(record.asa),
+                emergency: record.emop === "1" || record.emop === 1 ? 1 : 0
+            },
+            outcomes: {
+                duration: this.calculateDuration(
+                    this.safeNumber(record.opstart),
+                    this.safeNumber(record.opend)
+                ),
+                death_inhosp: record.death_inhosp === "1" || record.death_inhosp === 1 ? 1 : 0
+            }
+        }))
+        .filter(record => {
+            // Relaxed post-processing validation
+            return (
+                record.riskFactors.age > 0 && record.riskFactors.age < 120 &&
+                record.riskFactors.bmi > 10 && record.riskFactors.bmi < 100 &&
+                record.outcomes.duration > 0
+            );
+        });
+
+    console.log('Processed data after filtering:', this.processedData.length);
+}
 
     getFilteredData(filters = {}) {
         console.log('Getting filtered data with filters:', filters);

@@ -39,6 +39,10 @@ export class Visualization {
                 label: "Surgery Type",
                 format: d => d ? `${d}` : 'N/A', // display categorical label as is
                 toNumeric: (d, categoryMap) => categoryMap[d] !== undefined ? categoryMap[d] : NaN
+            },
+            death_inhosp: {
+                label: "Death Rate %",
+                format: d => d ? `${(d * 100).toFixed(1)}%` : 'N/A'
             }
         };
 
@@ -150,6 +154,15 @@ export class Visualization {
         if (validData.length === 0) {
             console.warn('No valid data points to display');
             return;
+        }
+        
+        if (yMetric === 'death_inhosp') {
+            this.yScale.domain([0, 1]);
+        } else {
+            this.yScale.domain([
+                0,
+                d3.max(data, d => d.outcomes[yMetric]) * 1.1
+            ]);
         }
 
         // Update scales based on data ranges

@@ -4,7 +4,11 @@ import { visualization } from './visualization.js';
 
 async function initializeApp() {
     try {
+        console.log('Starting data fetch...');
         await dataProcessor.fetchData();
+        console.log('Data fetch complete');
+        console.log('Raw data count:', dataProcessor.rawData.length);
+        console.log('Processed data count:', dataProcessor.processedData.length);
         updateVisualization();
         setupEventListeners();
     } catch (error) {
