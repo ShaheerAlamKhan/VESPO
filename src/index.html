@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VESPO - Visual Exploration of Surgical Procedures & Outcomes</title>
-    
+
     <!-- Styles -->
     <link rel="stylesheet" href="css/style.css">
 </head>
@@ -20,14 +20,12 @@
                     <option value="asa">ASA Score</option>
                 </select>
             </div>
-
             <div class="filter-group">
-                <h3>Risk Factor (X-Axis)</h3>
-                <select id="risk-factor" class="filter-select">
-                    <option value="age">Age</option>
-                    <option value="bmi">BMI</option>
-                    <option value="asa">ASA Score</option>
-                </select>
+                <h3>Visualization Type</h3>
+                <div class="vis-toggle-buttons">
+                    <button id="scatter-btn" class="vis-btn active">Scatter Plot</button>
+                    <button id="wordcloud-btn" class="vis-btn">Surgical Word Cloud</button>
+                </div>
             </div>
             
             <div class="filter-group">
@@ -51,7 +49,16 @@
             <div class="visualization-container">
                 <h2>Patient Risk Factors and Surgical Outcomes Analysis</h2>
                 <div id="visualization"></div>
+                
+            </div> 
+            <main class="content">
+                <h2>Diagnosis Word Cloud</h2>
+                <p class="description">Word size indicates frequency of diagnoses in the dataset</p>
+                <div ></div>
+                <div id="word-cloud" ></div>
+
             </div>
+            <div ></div>
         </main>
     </div>
     <script type="module" src="js/app.js"></script>
