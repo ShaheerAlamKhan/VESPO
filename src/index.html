@@ -26,6 +26,9 @@
           <option value="age">Age</option>
           <option value="bmi">BMI</option>
           <option value="asa">ASA Score</option>
+          <option value="approach">Surgery Approach</option>
+          <option value="optype">Surgery Type</option>
+          <option value="sex">Sex</option>
         </select>
       </div>
       
@@ -34,13 +37,6 @@
         <select id="outcome" class="filter-select">
           <option value="duration">Surgery Duration</option>
           <option value="death_inhosp">Death Rate %</option>
-        </select>
-      </div>
-
-      <div class="filter-group">
-        <h3>Department</h3>
-        <select id="department" class="filter-select">
-          <option value="">All Departments</option>
         </select>
       </div>
     </aside>
@@ -52,6 +48,7 @@
         <div class="tabs">
           <button id="scatter-tab" class="tab active">Scatter Plot</button>
           <button id="sunburst-tab" class="tab">Sunburst</button>
+          <button id="barchart-tab" class="tab">Bar Chart</button>
         </div>
         <div id="visualization"></div>
         <!-- New Word Cloud Section -->

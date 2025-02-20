@@ -34,22 +34,28 @@ function setupEventListeners() {
   document.getElementById("risk-factor")?.addEventListener("change", () => {
     if (document.getElementById("scatter-tab").classList.contains("active")) {
       updateVisualization();
-    } else {
+    } else if (document.getElementById("sunburst-tab").classList.contains("active")) {
       updateSunburst();
+    } else {
+      updateBarchart();
     }
   });
   document.getElementById("outcome")?.addEventListener("change", () => {
     if (document.getElementById("scatter-tab").classList.contains("active")) {
       updateVisualization();
-    } else {
+    } else if (document.getElementById("sunburst-tab").classList.contains("active")) {
       updateSunburst();
+    } else {
+      updateBarchart();
     }
   });
   document.getElementById("department")?.addEventListener("change", () => {
     if (document.getElementById("scatter-tab").classList.contains("active")) {
       updateVisualization();
-    } else {
+    } else if (document.getElementById("sunburst-tab").classList.contains("active")) {
       updateSunburst();
+    } else {
+      updateBarchart();
     }
   });
 }
@@ -83,13 +89,27 @@ function updateSunburst() {
   visualization.updateSunburst(filteredData, filters);
 }
 
+function updateBarchart() {
+  const filters = {
+    riskFactor: document.getElementById("risk-factor")?.value || "age",
+    outcome: document.getElementById("outcome")?.value || "duration",
+    emergency: "",
+    department: document.getElementById("department")?.value || ""
+  };
+
+  const filteredData = dataProcessor.getFilteredData(filters);
+  visualization.updateBarchart(filteredData, filters);
+}
+
 function setupTabs() {
   const scatterTab = document.getElementById("scatter-tab");
   const sunburstTab = document.getElementById("sunburst-tab");
+  const barchartTab = document.getElementById("barchart-tab");
 
   scatterTab.addEventListener("click", () => {
     scatterTab.classList.add("active");
     sunburstTab.classList.remove("active");
+    barchartTab.classList.remove("active");
     document.getElementById("visualization").innerHTML = "";
     visualization.setupVisualization();
     updateVisualization();
@@ -98,8 +118,17 @@ function setupTabs() {
   sunburstTab.addEventListener("click", () => {
     sunburstTab.classList.add("active");
     scatterTab.classList.remove("active");
+    barchartTab.classList.remove("active");
     document.getElementById("visualization").innerHTML = "";
     updateSunburst();
+  });
+
+  barchartTab.addEventListener("click", () => {
+    barchartTab.classList.add("active");
+    scatterTab.classList.remove("active");
+    sunburstTab.classList.remove("active");
+    document.getElementById("visualization").innerHTML = "";
+    updateBarchart();
   });
 }
 

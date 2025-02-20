@@ -270,11 +270,17 @@ body.dark-mode .sunburst-label {
   
 /* Dark Mode for Legend Circles */
 body.dark-mode .legend-circle.non-emergency {
-    fill: #de690c; /* Inverted color for blue */
+    /* fill: #de690c; Inverted color for blue */
+    opacity: 0.55;
 }
   
 body.dark-mode .legend-circle.emergency {
-    fill: #00bbbb; /* Inverted color for red */
+    /* fill: #00bbbb; Inverted color for red */
+    opacity: 0.55;
+}
+
+body.dark-mode .bar {
+    opacity: 0.55;
 }
   
 /* Toggle Switch Styles */
@@ -325,4 +331,8 @@ input:checked + .slider {
 
 input:checked + .slider:before {
   transform: translateX(26px);
+}
+
+.x-axis text {
+    font-size: 12px;                 /* Adjust font size */
 }

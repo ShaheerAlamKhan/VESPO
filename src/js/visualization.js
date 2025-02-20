@@ -25,8 +25,9 @@ export class Visualization {
         format: (d) => (d ? `${d} ASA` : "N/A"),
       },
       duration: {
-        label: "Surgery Duration (hours)",
+        label: "Surgery Duration",
         format: (d) => (d ? `${d.toFixed(2)} hours` : "N/A"),
+        unit: "hours"
       },
       approach: {
         label: "Surgery Approach",
@@ -43,6 +44,11 @@ export class Visualization {
       death_inhosp: {
         label: "Deaths",
         format: (d) => (d ? `${d.toFixed(0)} deaths` : "N/A"),
+        unit: "%"
+      },
+      sex: {
+        label: "Sex",
+        format: (d) => (d ? `${d}` : "N/A"),
       },
     };
 
@@ -187,6 +193,7 @@ export class Visualization {
 
     this.xLabel.text(this.metrics[xMetric].label);
     this.yLabel.text(this.metrics[yMetric].label);
+    // this.yLabel.text(`${this.metrics[yMetric].label} (${this.metrics[yMetric].unit})`);
 
     const points = this.plotArea.selectAll(".point").data(data, (d) => d.caseid);
     const pointsEnter = points
@@ -472,6 +479,315 @@ export class Visualization {
     function arcVisible(d) {
       return d.y1 <= 3 && d.y0 >= 1 && d.x1 > d.x0;
     }
+  }
+
+  // updateBarchart(data, filters) {
+  //   d3.select("#visualization").select("svg").remove();
+
+  //   function binAge(age) {
+  //     if (age < 20) return "<20";
+  //     else if (age < 40) return "20-39";
+  //     else if (age < 60) return "40-59";
+  //     else if (age < 80) return "60-79";
+  //     else return "80+";
+  //   }
+  //   function binBMI(bmi) {
+  //     if (bmi < 18.5) return "Underweight";
+  //     else if (bmi < 25) return "Normal";
+  //     else if (bmi < 30) return "Overweight";
+  //     else return "Obese";
+  //   }
+
+  //   const xMetric = filters.riskFactor;
+  //   const yMetric = filters.outcome;
+
+  //   console.log("Metrics:", { xMetric, yMetric });
+  //   console.log("Sample data point:", data[0]);
+
+  //   if (yMetric === "death_inhosp") {
+  //     this.yScale.domain([0, 1]);
+  //   } else {
+  //     this.yScale.domain([
+  //       0,
+  //       d3.max(data, (d) => d.outcomes[yMetric]) * 1.1,
+  //     ]);
+  //   }
+
+  //   // Group data by age or bmi if xMetric is either of these
+  //   let groupedData;
+  //   if (xMetric === 'age') {
+  //     // Bin age using binAge function
+  //     groupedData = d3.group(data, d => binAge(d.riskFactors.age));
+  //   } else if (xMetric === 'bmi') {
+  //     // Bin BMI using binBMI function
+  //     groupedData = d3.group(data, d => binBMI(d.riskFactors.bmi));
+  //   } else {
+  //     // Default behavior: group by original risk factor
+  //     groupedData = d3.group(data, d => d.riskFactors[xMetric]);
+  //   }
+
+  //   const categoryAverages = Array.from(groupedData, ([key, values]) => {  
+  //     const avg = d3.mean(values, d => d.outcomes[yMetric]);
+      
+  //     return {
+  //       key: key,
+  //       value: avg
+  //     };
+  //   });
+
+  //   if (yMetric === 'death_inhosp') {
+  //     categoryAverages.forEach(d => {
+  //       d.value *= 100;
+  //     })
+  //   }
+
+  //   categoryAverages.sort((a, b) => {
+  //     if (a.key < b.key) return -1;
+  //     if (a.key > b.key) return 1;
+  //     return 0;
+  //   });
+
+  //   console.log('Category averages:', categoryAverages);
+
+  //   // Categorical x-axis
+  //   const uniqueCategories = categoryAverages.map(d => d.key);  // Get unique categories
+  //   this.xScale = d3.scaleBand()  // Use scaleBand for categorical axis
+  //       .domain(uniqueCategories)
+  //       .range([0, this.innerWidth])
+  //       .padding(0.1);  // Optional: Adjust padding
+
+  //   this.yScale.domain([0, d3.max(categoryAverages, d => d.value) * 1.1]);
+
+  //   // Create SVG container for the bar chart
+  //   const svg = d3.select("#visualization").append("svg")
+  //     .attr("width", this.width)
+  //     .attr("height", this.height);
+
+  //   // Create plot area group
+  //   const plotArea = svg.append("g")
+  //   .attr("transform", `translate(${this.margin.left},${this.margin.top})`);
+
+  // // Create bars for category averages
+  //   const bars = plotArea.selectAll(".bar")
+  //     .data(categoryAverages, d => d.key);  // Use category key as a unique identifier
+  
+  //   // Enter new bars
+  //   const barsEnter = bars.enter()
+  //   .append("rect")
+  //   .attr("class", "bar")
+  //   .attr("x", d => this.xScale(d.key))
+  //   .attr("y", d => this.yScale(d.value))
+  //   .attr("width", this.xScale.bandwidth())
+  //   .attr("height", d => this.innerHeight - this.yScale(d.value))
+  //   .attr("fill", "#2196F3")
+  //   .attr("opacity", 0.6)
+  //   .on("mouseover", (event, d) => {  // Arrow function used here
+  //     d3.select(event.currentTarget).attr("fill", "#1976D2");
+  //     tooltip.transition().duration(200).style("opacity", .9);
+  //     tooltip.html(`Category: ${d.key}<br>Avg ${this.metrics[yMetric].label}: 
+  //       ${d.value.toFixed(2)} ${this.metrics[yMetric].unit}`)
+  //       .style("left", (event.pageX + 5) + "px")
+  //       .style("top", (event.pageY - 28) + "px");
+  //   })
+  //   .on("mouseout", function() {
+  //     d3.select(this).attr("fill", "#2196F3");
+  //     tooltip.transition().duration(200).style("opacity", 0);
+  //   });
+
+  //   // Merge and transition bars
+  //   bars.merge(barsEnter)
+  //     .transition()
+  //     .duration(750)
+  //     .attr("x", d => this.xScale(d.key))
+  //     .attr("y", d => this.yScale(d.value))
+  //     .attr("width", this.xScale.bandwidth())
+  //     .attr("height", d => this.innerHeight - this.yScale(d.value));
+  
+  //   // Remove old bars
+  //   bars.exit()
+  //     .transition()
+  //     .duration(750)
+  //     .attr("height", 0)
+  //     .remove();
+    
+  //    // Create and transition axes
+  //   const xAxisGroup = plotArea.append("g")
+  //   .attr("class", "x-axis")
+  //   .attr("transform", `translate(0, ${this.innerHeight})`); // Position the x-axis at the bottom
+
+  //   const yAxisGroup = plotArea.append("g")
+  //     .attr("class", "y-axis");
+
+  //   // Transition for axes
+  //   xAxisGroup.transition().duration(750).call(d3.axisBottom(this.xScale));
+  //   yAxisGroup.transition().duration(750).call(d3.axisLeft(this.yScale));
+    
+  //   // Adding axis labels
+  //   // X-axis label
+  //   svg.append("text")
+  //   .attr("class", "x-label")
+  //   .attr("transform", `translate(${this.width / 2}, ${this.height - this.margin.bottom + 40})`)
+  //   .style("text-anchor", "middle")
+  //   .text(this.metrics[xMetric].label);
+
+  //   // Y-axis label
+  //   svg.append("text")
+  //     .attr("class", "y-label")
+  //     .attr("transform", "rotate(-90)")  // Rotate for vertical label
+  //     .attr("x", -this.innerHeight / 2)
+  //     .attr("y", this.margin.left - 40)
+  //     .style("text-anchor", "middle")
+  //     .text(`${this.metrics[yMetric].label} (${this.metrics[yMetric].unit})`);
+  
+  //   // Tooltip for hover effects
+  //   const tooltip = d3.select("body").append("div")
+  //     .attr("class", "tooltip")
+  //     .style("opacity", 0);
+  // }
+     
+  updateBarchart(data, filters) {
+    d3.select("#visualization").select("svg").remove();
+
+    function binAge(age) {
+      if (age < 20) return "<20";
+      else if (age < 40) return "20-39";
+      else if (age < 60) return "40-59";
+      else if (age < 80) return "60-79";
+      else return "80+";
+    }
+
+    function binBMI(bmi) {
+      if (bmi < 18.5) return "Underweight";
+      else if (bmi < 25) return "Normal";
+      else if (bmi < 30) return "Overweight";
+      else return "Obese";
+    }
+
+    const xMetric = filters.riskFactor;
+    const yMetric = filters.outcome;
+
+    // Group data by emergency status and then by age/bmi/risk factor
+    let groupedData;
+    if (xMetric === 'age') {
+      groupedData = d3.group(data, d => d.riskFactors.emergency, d => binAge(d.riskFactors.age));
+    } else if (xMetric === 'bmi') {
+      groupedData = d3.group(data, d => d.riskFactors.emergency, d => binBMI(d.riskFactors.bmi));
+    } else {
+      groupedData = d3.group(data, d => d.riskFactors.emergency, d => d.riskFactors[xMetric]);
+    }
+
+    // Calculate category averages for each emergency status and category (age/bmi)
+    const categoryAverages = [];
+    groupedData.forEach((statusGroup, status) => {
+      statusGroup.forEach((values, category) => {
+        const avg = d3.mean(values, d => d.outcomes[yMetric]);
+        categoryAverages.push({ status, category, value: avg });
+      });
+    });
+
+    console.log('Category averages:', categoryAverages);
+
+    if (yMetric === 'death_inhosp') {
+      categoryAverages.forEach(d => {
+        d.value *= 100; // Convert to percentage if dealing with death_inhosp
+      });
+    }
+
+    // Sort category averages
+    categoryAverages.sort((a, b) => a.category < b.category ? -1 : a.category > b.category ? 1 : 0);
+
+    // Categorical x-axis
+    const uniqueCategories = Array.from(new Set(categoryAverages.map(d => d.category)));  // Get unique categories
+    this.xScale = d3.scaleBand()
+      .domain(uniqueCategories)
+      .range([0, this.innerWidth])
+      .padding(0.1);
+
+    this.yScale.domain([0, d3.max(categoryAverages, (d) => d.value) * 1.1]);
+
+    // Create SVG container for the bar chart
+    const svg = d3.select("#visualization").append("svg")
+      .attr("width", this.width)
+      .attr("height", this.height);
+
+    this.svg = svg; // Save reference for legend
+
+    // Create plot area group
+    const plotArea = svg.append("g")
+      .attr("transform", `translate(${this.margin.left},${this.margin.top})`);
+
+    // Bar width (with space between the two bars)
+    const barWidth = this.xScale.bandwidth() / 3;
+
+    // Create bars for each category and emergency status
+    plotArea.selectAll(".bar")
+      .data(categoryAverages)
+      .enter().append("rect")
+      .attr("class", "bar")
+      .attr("x", d => this.xScale(d.category) + barWidth + (d.status === 1 ? -barWidth / 2 : barWidth / 2))
+      .attr("y", d => this.yScale(d.value))
+      .attr("height", d => this.innerHeight - this.yScale(d.value))
+      .attr("width", barWidth)
+      .attr("opacity", 0.85)
+      .attr("fill", d => d.status === 1 ? "#ff4444" : "#2196F3")  // Color for emergency vs non-emergency
+      .on("mouseover", (event, d) => {  // Handle hover effect
+        // Hover color change
+        if (d.status === 1) {
+          d3.select(event.currentTarget).attr("fill", "#D32F2F");  // Darker red for emergency
+        } else {
+          d3.select(event.currentTarget).attr("fill", "#1976D2");  // Blue for non-emergency
+        }
+        tooltip.transition().duration(200).style("opacity", .9);
+        tooltip.html(`Category: ${d.category}<br>Avg ${this.metrics[yMetric].label}: 
+            ${d.value.toFixed(2)} ${this.metrics[yMetric].unit}`)
+          .style("left", (event.pageX + 5) + "px")
+          .style("top", (event.pageY - 28) + "px");
+      })
+      .on("mouseout", function(event, d) {
+        // On mouseout, reset the color but keep emergency red color for the "emergency" bars
+        if (d.status === 1) {
+          d3.select(this).attr("fill", "#ff4444");  // Keep red for emergency
+        } else {
+          d3.select(this).attr("fill", "#2196F3");  // Keep blue for non-emergency
+        }
+        tooltip.transition().duration(200).style("opacity", 0);
+      });
+
+    // Create and transition axes
+    const xAxisGroup = plotArea.append("g")
+      .attr("class", "x-axis")
+      .attr("transform", `translate(0, ${this.innerHeight})`); // Position the x-axis at the bottom
+
+    const yAxisGroup = plotArea.append("g")
+      .attr("class", "y-axis");
+
+    // Transition for axes
+    xAxisGroup.transition().duration(750).call(d3.axisBottom(this.xScale));
+    yAxisGroup.transition().duration(750).call(d3.axisLeft(this.yScale));
+
+    // Adding axis labels
+    svg.append("text")
+      .attr("class", "x-label")
+      .attr("transform", `translate(${this.width / 2}, 
+        ${this.height - this.margin.bottom + 40})`)
+      .style("text-anchor", "middle")
+      .text(this.metrics[xMetric].label);
+
+    svg.append("text")
+      .attr("class", "y-label")
+      .attr("transform", "rotate(-90)")  // Rotate for vertical label
+      .attr("x", -this.innerHeight / 2)
+      .attr("y", this.margin.left - 40)
+      .style("text-anchor", "middle")
+      .text(`${this.metrics[yMetric].label} (${this.metrics[yMetric].unit})`);
+
+    // Tooltip for hover effects
+    const tooltip = d3.select("body").append("div")
+      .attr("class", "tooltip")
+      .style("opacity", 0);
+
+    // Call the setupLegend function to add the legend
+    this.setupLegend();
   }
 
   // New method to create the diagnosis word cloud
