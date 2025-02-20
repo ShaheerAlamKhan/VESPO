@@ -19,13 +19,15 @@
 
   <div class="container">
     <aside class="sidebar">
-      <!-- Risk Factor Filters -->
+      <!-- Risk Factor Filters (X-Axis) -->
       <div class="filter-group">
         <h3>Risk Factors (X-Axis)</h3>
         <select id="risk-factor" class="filter-select">
           <option value="age">Age</option>
           <option value="bmi">BMI</option>
           <option value="asa">ASA Score</option>
+          <option value="optype">Surgery Type</option>
+          <option value="department">Department</option>
         </select>
       </div>
       
@@ -36,22 +38,20 @@
           <option value="death_inhosp">Death Rate %</option>
         </select>
       </div>
-
-      <div class="filter-group">
-        <h3>Department</h3>
-        <select id="department" class="filter-select">
-          <option value="">All Departments</option>
-        </select>
-      </div>
+      <!-- Removed separate Department filter -->
     </aside>
 
     <main class="main-content">
+     <div id="loading" style="display:none; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); z-index:1000;">
+        <div class="spinner"></div>
+      </div>   
       <div class="visualization-container">
         <h2>Patient Risk Factors and Surgical Outcomes Analysis</h2>
         <!-- Tabs for switching between views -->
         <div class="tabs">
-          <button id="scatter-tab" class="tab active">Scatter Plot</button>
+          <button id="scatter-tab" class="tab active">Bee Plot</button>
           <button id="sunburst-tab" class="tab">Sunburst</button>
+          <button id="boxplot-tab" class="tab">Box Plot</button>
         </div>
         <div id="visualization"></div>
         <!-- New Word Cloud Section -->

@@ -10,13 +10,24 @@ class DataProcessor {
 
   async fetchData() {
     try {
-      const response = await fetch(this.API_URL);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      const cacheKey = "vitaldbCases";
+      const cacheTimestampKey = "vitaldbCases_timestamp";
+      const cacheDuration = 3600 * 1000; // 1 hour in milliseconds
+      let csvText;
+      const cachedData = localStorage.getItem(cacheKey);
+      const cachedTimestamp = localStorage.getItem(cacheTimestampKey);
+      if (cachedData && cachedTimestamp && (Date.now() - parseInt(cachedTimestamp) < cacheDuration)) {
+        console.log("Using cached data");
+        csvText = cachedData;
+      } else {
+        const response = await fetch(this.API_URL);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        csvText = await response.text();
+        localStorage.setItem(cacheKey, csvText);
+        localStorage.setItem(cacheTimestampKey, Date.now().toString());
       }
-
-      const csvText = await response.text();
-      // Return a Promise to properly handle the async parsing
       return new Promise((resolve, reject) => {
         Papa.parse(csvText, {
           header: true,
@@ -39,7 +50,6 @@ class DataProcessor {
     }
   }
 
-  // Helper function for data conversion
   safeNumber(value) {
     const num = parseFloat(value);
     return !isNaN(num) ? num : null;
@@ -57,36 +67,31 @@ class DataProcessor {
     return duration > 0 ? duration / 3600 : null;
   }
 
-  // Dynamically generate a map for categorical values
   generateCategoryMap(categoryField) {
     const uniqueValues = [
       ...new Set(this.rawData.map((record) => record[categoryField])),
     ].filter((value) => value !== null);
     return uniqueValues.reduce((map, value, index) => {
-      map[value] = index + 1; // Assign a unique index for each unique value
+      map[value] = index + 1;
       return map;
     }, {});
   }
 
-  // Convert categorical field to numeric using the generated map
   convertCategoryToNumeric(categoryField, categoryValue) {
     if (!this.categoryMaps[categoryField]) {
-      this.categoryMaps[categoryField] = this.generateCategoryMap(categoryField); // Generate map if not already created
+      this.categoryMaps[categoryField] = this.generateCategoryMap(categoryField);
     }
     return this.categoryMaps[categoryField][categoryValue] !== undefined
       ? this.categoryMaps[categoryField][categoryValue]
       : null;
   }
 
-  // Initialize category maps (for approach and optype)
   categoryMaps = {};
 
   processData() {
     console.log("Raw data before processing:", this.rawData.length);
-
     this.processedData = this.rawData
       .filter((record) => {
-        // Relaxed validation - only check essential fields
         const isValid = Boolean(
           record?.caseid &&
             this.safeNumber(record?.age) > 0 &&
@@ -95,7 +100,6 @@ class DataProcessor {
             this.safeNumber(record?.opend) > 0 &&
             record?.department
         );
-
         if (!isValid) {
           console.log("Invalid record:", record);
         }
@@ -110,7 +114,6 @@ class DataProcessor {
           asa: this.convertASA(record.asa),
           emergency:
             record.emop === "1" || record.emop === 1 ? 1 : 0,
-          // Added fields for the sunburst hierarchy
           approach: record.approach || "Unknown Approach",
           optype: record.optype || "Unknown Surgery Type",
         },
@@ -126,7 +129,6 @@ class DataProcessor {
         },
       }))
       .filter((record) => {
-        // Relaxed post-processing validation
         return (
           record.riskFactors.age > 0 &&
           record.riskFactors.age < 120 &&
@@ -135,34 +137,37 @@ class DataProcessor {
           record.outcomes.duration > 0
         );
       });
-
     console.log("Processed data after filtering:", this.processedData.length);
   }
 
   getFilteredData(filters = {}) {
-    console.log("Getting filtered data with filters:", filters);
-
+    const cacheKey = JSON.stringify(filters);
+    if (this._filterCache && this._filterCache[cacheKey]) {
+      console.log("Using cached filtered data");
+      return this._filterCache[cacheKey];
+    }
+  
     let filteredData = this.processedData;
-
-    // Filter by emergency if specified
+  
     if (filters.emergency !== "") {
       filteredData = filteredData.filter(
-        (record) =>
-          record.riskFactors.emergency === parseInt(filters.emergency)
+        (record) => record.riskFactors.emergency === parseInt(filters.emergency)
       );
     }
-
-    // Filter by department if specified
+  
     if (filters.department) {
       filteredData = filteredData.filter(
         (record) => record.department === filters.department
       );
     }
-
-    console.log("Filtered data:", filteredData);
+  
+    if (!this._filterCache) {
+      this._filterCache = {};
+    }
+    this._filterCache[cacheKey] = filteredData;
     return filteredData;
   }
-
+  
   getMetricRange(metric) {
     const values = this.processedData
       .map((record) => {
