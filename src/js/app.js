@@ -68,6 +68,29 @@ const debounce = (func, wait) => {
 
 let currentVisualization = 'scatter';
 
+// Update the explanation text for the active plot
+function updatePlotExplanation() {
+    const explanationContainer = document.getElementById("plot-explanation");
+    let explanationText = "";
+    switch(currentVisualization) {
+        case "scatter":
+            explanationText = `<strong>Bee Plot Explanation:</strong> This beeswarm plot displays individual surgical cases grouped by the selected risk factor (X-Axis). The Y-Axis shows the outcome (e.g., surgery duration). Each point represents a case – hover over a point for details.`;
+            break;
+        case "sunburst":
+            explanationText = `<strong>Sunburst Plot Explanation:</strong> This sunburst plot presents a hierarchical breakdown of surgical cases based on parameters such as emergency status, surgery type, approach, age, BMI, and ASA score. Click on arcs to zoom in and explore the underlying details.`;
+            break;
+        case "boxplot":
+            explanationText = `<strong>Box Plot Explanation:</strong> This box plot visualizes the distribution of the selected outcome across groups defined by the risk factor. It displays the median, quartiles, and extremes. Hover over the boxes for more statistical details.`;
+            break;
+        default:
+            explanationText = "";
+    }
+    if (explanationContainer) {
+        explanationContainer.innerHTML = explanationText;
+        explanationContainer.style.display = "block";
+    }
+}
+
 function updateCurrentVisualization() {
     const dimensions = getVisualizationDimensions();
     console.log('Updating visualization:', currentVisualization, dimensions);
@@ -115,6 +138,8 @@ function updateCurrentVisualization() {
         } finally {
             document.getElementById("loading").style.display = "none";
         }
+        // Update the explanation text after the visualization is updated
+        updatePlotExplanation();
     });
 }
 
@@ -157,6 +182,34 @@ function setupEventListeners() {
 
     // Window resize handler
     window.addEventListener('resize', debounce(updateCurrentVisualization, 250));
+
+    // Dark mode toggle handler
+    const darkModeToggle = document.getElementById("dark-mode-toggle");
+    if (darkModeToggle) {
+        // Check system preference
+        if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.body.classList.add('dark-mode');
+            darkModeToggle.checked = true;
+        }
+
+        darkModeToggle.addEventListener("change", () => {
+            document.body.classList.toggle("dark-mode");
+            localStorage.setItem('darkMode', document.body.classList.contains('dark-mode') ? 'enabled' : 'disabled');
+            updateCurrentVisualization();
+        });
+
+        // Check stored preference
+        const storedDarkMode = localStorage.getItem('darkMode');
+        if (storedDarkMode) {
+            if (storedDarkMode === 'enabled') {
+                document.body.classList.add('dark-mode');
+                darkModeToggle.checked = true;
+            } else {
+                document.body.classList.remove('dark-mode');
+                darkModeToggle.checked = false;
+            }
+        }
+    }
 }
 
 async function initializeApp() {
@@ -167,20 +220,17 @@ async function initializeApp() {
         // Initialize dark mode
         const darkModeToggle = document.getElementById("dark-mode-toggle");
         if (darkModeToggle) {
-            // Check system preference
             if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
                 document.body.classList.add('dark-mode');
                 darkModeToggle.checked = true;
             }
 
-            // Handle toggle changes
             darkModeToggle.addEventListener("change", () => {
                 document.body.classList.toggle("dark-mode");
-                localStorage.setItem('darkMode', darkModeToggle.checked ? 'enabled' : 'disabled');
+                localStorage.setItem('darkMode', document.body.classList.contains('dark-mode') ? 'enabled' : 'disabled');
                 updateCurrentVisualization();
             });
 
-            // Check stored preference
             const storedDarkMode = localStorage.getItem('darkMode');
             if (storedDarkMode) {
                 if (storedDarkMode === 'enabled') {
@@ -227,5 +277,4 @@ async function initializeApp() {
     }
 }
 
-// Initialize app when DOM is ready
 document.addEventListener("DOMContentLoaded", initializeApp);
