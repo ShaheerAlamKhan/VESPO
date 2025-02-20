@@ -15,6 +15,7 @@ export class Visualization {
       age: {
         label: "Patient Age (years)",
         format: (d) => (d ? `${d} years` : "N/A"),
+        unit: "years"
       },
       bmi: {
         label: "BMI",
@@ -50,6 +51,10 @@ export class Visualization {
         label: "Sex",
         format: (d) => (d ? `${d}` : "N/A"),
       },
+      department: {
+        label: "Department",
+        format: (d) => (d ? `${d}` : "N/A"),
+      }
     };
 
     this.setupVisualization();
@@ -738,8 +743,9 @@ export class Visualization {
           d3.select(event.currentTarget).attr("fill", "#1976D2");  // Blue for non-emergency
         }
         tooltip.transition().duration(200).style("opacity", .9);
-        tooltip.html(`Category: ${d.category}<br>Avg ${this.metrics[yMetric].label}: 
-            ${d.value.toFixed(2)} ${this.metrics[yMetric].unit}`)
+        tooltip.html(`Category: ${d.category} ${this.metrics[xMetric].unit ? `${this.metrics[xMetric].unit}` : ''}
+          <br>Avg ${this.metrics[yMetric].label}: ${d.value.toFixed(2)} ${this.metrics[yMetric].unit}
+          <br>Emergency: ${d.status === 1 ? 'Yes' : 'No'}`)
           .style("left", (event.pageX + 5) + "px")
           .style("top", (event.pageY - 28) + "px");
       })

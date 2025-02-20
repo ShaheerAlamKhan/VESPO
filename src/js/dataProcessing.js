@@ -113,7 +113,8 @@ class DataProcessor {
           // Added fields for the sunburst hierarchy
           approach: record.approach || "Unknown Approach",
           optype: record.optype || "Unknown Surgery Type",
-          sex: record.sex === "F" ? "Female" : "Male"
+          sex: record.sex === "F" ? "Female" : "Male",
+          department: record.department
         },
         outcomes: {
           duration: this.calculateDuration(
