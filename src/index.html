@@ -1,67 +1,104 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>VESPO - Visual Exploration of Surgical Procedures & Outcomes</title>
-  <!-- Styles -->
-  <link rel="stylesheet" href="css/style.css" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VESPO - Visual Exploration of Surgical Procedures & Outcomes</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/style.css" />
 </head>
-<body>
-  <!-- Dark Mode Toggle Switch -->
-  <div id="toggle-container">
-    <a>Dark Mode</a>
-    <label class="switch">
-      <input id="dark-mode-toggle" type="checkbox">
-      <span class="slider"></span>
-    </label>
-  </div>
-
-  <div class="container">
-    <aside class="sidebar">
-      <!-- Risk Factor Filters (X-Axis) -->
-      <div class="filter-group">
-        <h3>Risk Factors (X-Axis)</h3>
-        <select id="risk-factor" class="filter-select">
-          <option value="age">Age</option>
-          <option value="bmi">BMI</option>
-          <option value="asa">ASA Score</option>
-          <option value="optype">Surgery Type</option>
-          <option value="department">Department</option>
-        </select>
-      </div>
-      
-      <div class="filter-group">
-        <h3>Outcome (Y-Axis)</h3>
-        <select id="outcome" class="filter-select">
-          <option value="duration">Surgery Duration</option>
-          <option value="death_inhosp">Death Rate %</option>
-        </select>
-      </div>
-      <!-- Removed separate Department filter -->
-    </aside>
-
-    <main class="main-content">
-     <div id="loading" style="display:none; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); z-index:1000;">
-        <div class="spinner"></div>
-      </div>   
-      <div class="visualization-container">
-        <h2>Patient Risk Factors and Surgical Outcomes Analysis</h2>
-        <!-- Tabs for switching between views -->
-        <div class="tabs">
-          <button id="scatter-tab" class="tab active">Bee Plot</button>
-          <button id="sunburst-tab" class="tab">Sunburst</button>
-          <button id="boxplot-tab" class="tab">Box Plot</button>
+<body class="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
+    <!-- Header -->
+    <header class="w-full py-8 bg-white dark:bg-gray-800 shadow-lg">
+        <div class="container mx-auto text-center px-4">
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-800 dark:text-white mb-2">
+                VESPO
+            </h1>
+            <p class="text-lg text-gray-600 dark:text-gray-300">
+                Visual Exploration of Surgical Procedures & Outcomes
+            </p>
         </div>
-        <div id="visualization"></div>
-        <!-- New Word Cloud Section -->
-        <div id="wordcloud-section">
-          <h2>Diagnosis Word Cloud</h2>
-          <div id="wordcloud"></div>
+    </header>
+
+    <!-- Dark Mode Toggle -->
+    <div class="fixed top-4 right-4 z-50 flex items-center space-x-2">
+        <span class="text-sm text-gray-600 dark:text-gray-300">Dark Mode</span>
+        <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" id="dark-mode-toggle" class="sr-only peer" />
+            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+        </label>
+    </div>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8">
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            <!-- Sidebar -->
+            <aside class="lg:col-span-1">
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+                    <div class="space-y-6">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-3">
+                                Risk Factors (X-Axis)
+                            </h3>
+                            <select id="risk-factor" class="w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2.5">
+                                <option value="age">Age</option>
+                                <option value="bmi">BMI</option>
+                                <option value="asa">ASA Score</option>
+                                <option value="optype">Surgery Type</option>
+                                <option value="department">Department</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-3">
+                                Outcome (Y-Axis)
+                            </h3>
+                            <select id="outcome" class="w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2.5">
+                                <option value="duration">Surgery Duration</option>
+                                <option value="death_inhosp">Death Rate %</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Visualization Area -->
+            <div class="lg:col-span-3">
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+                    <div class="mb-6">
+                        <div class="flex space-x-2 mb-6">
+                            <button id="scatter-tab" class="tab active px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                                Bee Plot
+                            </button>
+                            <button id="sunburst-tab" class="tab px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                                Sunburst
+                            </button>
+                            <button id="boxplot-tab" class="tab px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                                Box Plot
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Loading Spinner -->
+                    <div id="loading" class="hidden absolute inset-0 flex items-center justify-center bg-white/50 dark:bg-gray-800/50">
+                        <div class="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
+                    </div>
+                    
+                    <!-- Visualization Container -->
+                    <div id="visualization" class="min-h-[500px]"></div>
+
+                    <!-- Word Cloud Section -->
+                    <div id="wordcloud-section" class="mt-8">
+                        <h2 class="text-xl font-semibold text-gray-800 dark:text-white mb-4">
+                            Diagnosis Word Cloud
+                        </h2>
+                        <div id="wordcloud" class="min-h-[400px] bg-white dark:bg-gray-800 rounded-lg"></div>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
     </main>
-  </div>
-  <script type="module" src="js/app.js"></script>
+
+    <script type="module" src="js/app.js"></script>
 </body>
 </html>

@@ -8,7 +8,6 @@ export function updateSunburst(data, filters, metrics) {
   const height = width;
   const radius = width / 6;
   
-  // Binning helper functions for age and BMI
   function binAge(age) {
     if (age < 20) return "<20";
     else if (age < 40) return "20-39";
@@ -25,7 +24,6 @@ export function updateSunburst(data, filters, metrics) {
   
   const metric = filters.outcome;
   
-  // Prepare hierarchical data based on the chosen metric
   function prepareSunburstData(data, metric) {
     const levels = [
       d => (d.riskFactors.emergency === 1 ? "Emergency" : "Non-Emergency"),
@@ -86,27 +84,29 @@ export function updateSunburst(data, filters, metrics) {
   
   const hierarchicalData = prepareSunburstData(data, metric);
   
-  // Create the SVG container and central label for displaying values
-  const svg = d3.select("#visualization")
-    .append("svg")
+  const visContainer = d3.select("#visualization");
+  // Determine dark mode and set background accordingly.
+  const isDark = document.body.classList.contains("dark-mode");
+  const svg = visContainer.append("svg")
     .attr("viewBox", [-width / 2, -height / 2, width, width])
-    .style("font", "10px sans-serif");
+    .style("font", "10px sans-serif")
+    .style("background-color", isDark ? "var(--bg-dark)" : "var(--bg-light)");
   
+  const centralLabelColor = isDark ? "var(--text-dark)" : "var(--text-light)";
   const centralLabel = svg.append("text")
     .attr("class", "central-label")
     .attr("text-anchor", "middle")
     .attr("dy", "0.35em")
     .style("font-size", "2em")
-    .style("fill", "#888")
+    .style("fill", centralLabelColor)
     .style("pointer-events", "none")
     .style("visibility", "hidden");
   
-  // Define color schemes
   let color;
   if (metric === "death_inhosp") {
     color = d => {
       const emergencyNode = d.ancestors().find(n => n.depth === 1);
-      return emergencyNode && emergencyNode.data.name === "Emergency" ? "red" : "blue";
+      return emergencyNode && emergencyNode.data.name === "Emergency" ? "#ff4444" : "var(--primary-color)";
     };
   } else {
     color = d3.scaleOrdinal(
@@ -114,7 +114,6 @@ export function updateSunburst(data, filters, metrics) {
     );
   }
   
-  // Create a hierarchy and partition layout
   const rootNode = d3.hierarchy(hierarchicalData)
     .sum(d => d.value)
     .sort((a, b) => b.value - a.value);
@@ -122,7 +121,6 @@ export function updateSunburst(data, filters, metrics) {
   partitionLayout(rootNode);
   rootNode.each(d => (d.current = d));
   
-  // Define the arc generator
   const arc = d3.arc()
     .startAngle(d => d.x0)
     .endAngle(d => d.x1)
@@ -131,7 +129,6 @@ export function updateSunburst(data, filters, metrics) {
     .innerRadius(d => d.y0 * radius)
     .outerRadius(d => Math.max(d.y0 * radius, d.y1 * radius - 1));
   
-  // Draw the arcs (paths)
   const path = svg.append("g")
     .selectAll("path")
     .data(rootNode.descendants().slice(1))
@@ -160,7 +157,6 @@ export function updateSunburst(data, filters, metrics) {
       centralLabel.style("visibility", "hidden");
     });
   
-  // Helper functions to determine label visibility and positioning
   function labelVisible(d) {
     return d.y1 <= 3 && d.y0 >= 1 && (d.y1 - d.y0) * (d.x1 - d.x0) > 0.03;
   }
@@ -170,7 +166,6 @@ export function updateSunburst(data, filters, metrics) {
     return `rotate(${x - 90}) translate(${y},0) rotate(${x < 180 ? 0 : 180})`;
   }
   
-  // Draw the labels
   const label = svg.append("g")
     .attr("pointer-events", "none")
     .attr("text-anchor", "middle")
@@ -184,7 +179,6 @@ export function updateSunburst(data, filters, metrics) {
     .attr("transform", d => labelTransform(d.current))
     .text(d => d.data.name);
   
-  // Add a central circle to allow zooming back out
   const parent = svg.append("circle")
     .datum(rootNode)
     .attr("r", radius)
@@ -192,9 +186,7 @@ export function updateSunburst(data, filters, metrics) {
     .attr("pointer-events", "all")
     .on("click", (event, d) => { clicked(event, rootNode); });
   
-  // Click handler for zooming transitions
   function clicked(event, p) {
-    // Compute new target angles and radii for each node based on p.
     rootNode.each(d => {
       d.target = {
         x0: Math.max(0, Math.min(1, (d.x0 - p.x0) / (p.x1 - p.x0))) * 2 * Math.PI,
@@ -206,7 +198,6 @@ export function updateSunburst(data, filters, metrics) {
   
     const t = svg.transition().duration(event.altKey ? 7500 : 750);
   
-    // Transition the arcs using interpolation from d.current to d.target
     path.transition(t)
       .tween("data", d => {
         const i = d3.interpolate(d.current, d.target);
@@ -214,7 +205,6 @@ export function updateSunburst(data, filters, metrics) {
       })
       .attrTween("d", d => () => arc(d.current));
   
-    // Transition the labels so that their position updates along with the arcs.
     label.transition(t)
       .attr("fill-opacity", d => +labelVisible(d.current))
       .attrTween("transform", d => {
@@ -223,7 +213,6 @@ export function updateSunburst(data, filters, metrics) {
       });
   }
   
-  // Helper to determine if an arc should be visible.
   function arcVisible(d) {
     return d.y1 <= 3 && d.y0 >= 1 && d.x1 > d.x0;
   }

@@ -1,351 +1,168 @@
+/* Modern Styles for VESPO */
+
 /* Base Styles */
+:root {
+    --primary-color: #3b82f6;
+    --primary-hover: #2563eb;
+    --bg-light: #f9fafb;
+    --bg-dark: #111827;
+    --text-light: #374151;
+    --text-dark: #f9fafb;
+}
+
+/* Smooth Transitions */
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-  
-body {
-    font-family: "Arial", sans-serif;
-    line-height: 1.6;
-    color: #333;
-    background-color: #f4f4f4;
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Dark Mode Overrides for Body */
-body.dark-mode {
-    background-color: #000;
-    color: #fff;
+/* Tab Styles */
+.tab {
+    background-color: #e5e7eb;
+    color: #4b5563;
 }
 
-/* Container Layout */
-.container {
-    display: grid;
-    grid-template-columns: 300px 1fr;
-    min-height: 100vh;
-    gap: 20px;
-    padding: 20px;
+.tab:hover {
+    background-color: #d1d5db;
 }
-  
-/* Main Content */
-.main-content {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
+
+.tab.active {
+    background-color: var(--primary-color);
+    color: white;
 }
-  
-.top-filters {
-    background: white;
-    padding: 15px;
-    border-radius: 8px;
-    display: flex;
-    gap: 15px;
-    flex-wrap: wrap;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+body.dark-mode .tab {
+    background-color: #374151;
+    color: #d1d5db;
 }
-  
-.visualization-container {
-    background: white;
-    padding: 20px;
-    border-radius: 8px;
-    flex-grow: 1;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    min-height: 500px;
+
+body.dark-mode .tab.active {
+    background-color: var(--primary-color);
+    color: white;
 }
-  
-/* Form Elements */
-select {
-    width: 100%;
+
+/* Visualization Styles */
+.visualization-container svg {
+    max-width: 100%;
+    height: auto;
+}
+
+/* D3 Specific Styles */
+.axis-label {
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.tick text {
+    font-size: 10px;
+    fill: var(--text-light);
+}
+
+body.dark-mode .tick text {
+    fill: var(--text-dark);
+}
+
+.domain, .tick line {
+    stroke: #e5e7eb;
+}
+
+body.dark-mode .domain,
+body.dark-mode .tick line {
+    stroke: #4b5563;
+}
+
+/* Tooltip Styles */
+.tooltip {
+    position: absolute;
     padding: 8px 12px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    background-color: white;
-    font-size: 14px;
-}
-  
-select:hover {
-    border-color: #bbb;
-}
-  
-select:focus {
-    outline: none;
-    border-color: #3498db;
-    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
-}
-  
-/* Tooltip */
-.tooltip {
-    position: absolute;
     background: rgba(0, 0, 0, 0.8);
     color: white;
-    padding: 10px;
-    border-radius: 4px;
+    border-radius: 6px;
     font-size: 12px;
     pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.2s;
-}
-  
-/* Responsive Design */
-@media (max-width: 1024px) {
-    .container {
-      grid-template-columns: 250px 1fr;
-    }
-}
-  
-@media (max-width: 768px) {
-    .container {
-      grid-template-columns: 1fr;
-    }
-}
-  
-/* Sidebar Styles */
-.sidebar {
-    background: white;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-  
-.filter-group {
-    margin-bottom: 20px;
-}
-  
-.filter-group h3 {
-    color: #2c3e50;
-    margin-bottom: 10px;
-    font-size: 16px;
-    font-weight: 600;
-}
-  
-.filter-group select {
-    margin-bottom: 10px;
-}
-  
-/* Sidebar Sticky for Mobile */
-@media (max-width: 768px) {
-    .sidebar {
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-}
-  
-/* Metric Controls */
-.metric-controls {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    padding: 10px;
-    background: #f8f9fa;
-    border-radius: 4px;
-}
-  
-.metric-selector {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-  
-.metric-selector label {
-    font-weight: 600;
-    color: #2c3e50;
-}
-  
-.metric-selector select {
-    padding: 6px 12px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    background-color: white;
-}
-  
-.control-btn {
-    padding: 8px 16px;
-    background-color: #3498db;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
-  
-.control-btn:hover {
-    background-color: #2980b9;
-}
-  
-/* Visualization Elements */
-.metric-line {
-    transition: opacity 0.3s;
-}
-  
-.point {
-    cursor: pointer;
-    transition: r 0.2s;
-}
-  
-.point:hover {
-    r: 8;
-}
-  
-.tooltip {
-    position: absolute;
-    padding: 10px;
-    background: rgba(0, 0, 0, 0.8);
-    color: white;
-    border-radius: 4px;
-    font-size: 12px;
-    pointer-events: none;
-    line-height: 1.4;
+    z-index: 100;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
 }
 
+body.dark-mode .tooltip {
+    background: rgba(255, 255, 255, 0.9);
+    color: black;
+}
+
+/* Word Cloud Styles */
+#wordcloud text {
+    transition: font-size 0.3s ease;
+}
+
+#wordcloud text:hover {
+    font-size: 120%;
+}
+
+/* Loading Spinner */
 .spinner {
-    border: 8px solid #f3f3f3; /* Light grey */
-    border-top: 8px solid #3498db; /* Blue */
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid var(--primary-color);
     border-radius: 50%;
-    width: 60px;
-    height: 60px;
     animation: spin 1s linear infinite;
-  }
-  @keyframes spin {
+}
+
+@keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
-  }
-  
-  
-/* Tabs */
-.tabs {
-    margin-bottom: 10px;
-}
-  
-.tab {
-    padding: 8px 16px;
-    border: none;
-    background: #ddd;
-    cursor: pointer;
-    margin-right: 5px;
-}
-  
-.tab.active {
-    background: #3498db;
-    color: white;
-}
-  
-/* Dark Mode Specific Styles */
-body.dark-mode .container,
-body.dark-mode .sidebar,
-body.dark-mode .main-content,
-body.dark-mode .visualization-container {
-    background-color: #222;
-    color: #fff;
-}
-  
-body.dark-mode .filter-group h3 {
-    color: #ddd;
-}
-  
-body.dark-mode select {
-    background-color: #333;
-    color: #fff;
-    border-color: #555;
-}
-  
-body.dark-mode .tabs .tab {
-    background: #444;
-    color: #fff;
-}
-  
-body.dark-mode .tabs .tab.active {
-    background: #3498db;
-    color: #fff;
-}
-  
-body.dark-mode .tooltip {
-    background: rgba(255, 255, 255, 0.8);
-    color: #000;
-}
-  
-/* Dark Mode for Axis Labels */
-body.dark-mode .x-label,
-body.dark-mode .y-label,
-body.dark-mode .axis-label {
-    fill: #fff;
-}
-  
-/* Dark Mode for Legend Text */
-body.dark-mode .legend-text {
-    fill: #fff;
-}
-  
-/* Dark Mode for Sunburst Labels */
-body.dark-mode .sunburst-label {
-    fill: #fff;
-}
-  
-/* Dark Mode for Legend Circles */
-body.dark-mode .legend-circle.non-emergency {
-    fill: #de690c; /* Inverted color for blue */
-}
-  
-body.dark-mode .legend-circle.emergency {
-    fill: #00bbbb; /* Inverted color for red */
-}
-  
-/* Toggle Switch Styles */
-#toggle-container {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 1000;
 }
 
-.switch {
-  position: relative;
-  display: inline-block;
-  width: 60px;
-  height: 34px;
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .container {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+    
+    .visualization-container {
+        overflow-x: auto;
+    }
 }
 
-.switch input { 
-  opacity: 0;
-  width: 0;
-  height: 0;
+/* Plot-specific styles */
+.point {
+    transition: r 0.2s ease, fill-opacity 0.2s ease;
 }
 
-.slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background-color: #ccc;
-  transition: 0.4s;
-  border-radius: 34px;
+.point:hover {
+    fill-opacity: 0.8;
 }
 
-.slider:before {
-  position: absolute;
-  content: "";
-  height: 26px;
-  width: 26px;
-  left: 4px;
-  bottom: 4px;
-  background-color: white;
-  transition: 0.4s;
-  border-radius: 50%;
+.box {
+    fill-opacity: 0.7;
+    transition: fill-opacity 0.2s ease;
 }
 
-input:checked + .slider {
-  background-color: #2196F3;
+.box:hover {
+    fill-opacity: 0.9;
 }
 
-input:checked + .slider:before {
-  transform: translateX(26px);
+/* Dark mode overrides for plots */
+body.dark-mode .axis-label,
+body.dark-mode .axis text {
+    fill: var(--text-dark);
 }
 
-body.dark-mode #wordcloud svg text.wordcloud-text {
-    fill: #fff !important;
-  }
-  
-  body:not(.dark-mode) #wordcloud svg text.wordcloud-text {
-    fill: #000 !important;
-  }
-  
+body.dark-mode .point {
+    fill-opacity: 0.6;
+}
+
+body.dark-mode .box {
+    fill-opacity: 0.5;
+}
+
+/* Ensure SVG text is visible in dark mode */
+body.dark-mode svg text {
+    fill: var(--text-dark);
+}
+
+/* NEW: Override body background when dark mode is active */
+body.dark-mode {
+    background: var(--bg-dark) !important;
+    color: var(--text-dark) !important;
+}

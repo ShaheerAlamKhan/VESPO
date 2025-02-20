@@ -67,42 +67,19 @@ class DataProcessor {
     return duration > 0 ? duration / 3600 : null;
   }
 
-  generateCategoryMap(categoryField) {
-    const uniqueValues = [
-      ...new Set(this.rawData.map((record) => record[categoryField])),
-    ].filter((value) => value !== null);
-    return uniqueValues.reduce((map, value, index) => {
-      map[value] = index + 1;
-      return map;
-    }, {});
-  }
-
-  convertCategoryToNumeric(categoryField, categoryValue) {
-    if (!this.categoryMaps[categoryField]) {
-      this.categoryMaps[categoryField] = this.generateCategoryMap(categoryField);
-    }
-    return this.categoryMaps[categoryField][categoryValue] !== undefined
-      ? this.categoryMaps[categoryField][categoryValue]
-      : null;
-  }
-
-  categoryMaps = {};
-
   processData() {
     console.log("Raw data before processing:", this.rawData.length);
+    
     this.processedData = this.rawData
       .filter((record) => {
         const isValid = Boolean(
           record?.caseid &&
-            this.safeNumber(record?.age) > 0 &&
-            this.safeNumber(record?.bmi) > 0 &&
-            this.safeNumber(record?.opstart) >= 0 &&
-            this.safeNumber(record?.opend) > 0 &&
-            record?.department
+          this.safeNumber(record?.age) > 0 &&
+          this.safeNumber(record?.bmi) > 0 &&
+          this.safeNumber(record?.opstart) >= 0 &&
+          this.safeNumber(record?.opend) > 0 &&
+          record?.department
         );
-        if (!isValid) {
-          console.log("Invalid record:", record);
-        }
         return isValid;
       })
       .map((record) => ({
@@ -112,8 +89,7 @@ class DataProcessor {
           age: this.safeNumber(record.age),
           bmi: this.safeNumber(record.bmi),
           asa: this.convertASA(record.asa),
-          emergency:
-            record.emop === "1" || record.emop === 1 ? 1 : 0,
+          emergency: record.emop === "1" || record.emop === 1 ? 1 : 0,
           approach: record.approach || "Unknown Approach",
           optype: record.optype || "Unknown Surgery Type",
         },
@@ -122,10 +98,7 @@ class DataProcessor {
             this.safeNumber(record.opstart),
             this.safeNumber(record.opend)
           ),
-          death_inhosp:
-            record.death_inhosp === "1" || record.death_inhosp === 1
-              ? 1
-              : 0,
+          death_inhosp: record.death_inhosp === "1" || record.death_inhosp === 1 ? 1 : 0,
         },
       }))
       .filter((record) => {
@@ -137,58 +110,39 @@ class DataProcessor {
           record.outcomes.duration > 0
         );
       });
+    
     console.log("Processed data after filtering:", this.processedData.length);
   }
 
   getFilteredData(filters = {}) {
-    const cacheKey = JSON.stringify(filters);
-    if (this._filterCache && this._filterCache[cacheKey]) {
-      console.log("Using cached filtered data");
-      return this._filterCache[cacheKey];
+    console.log("Getting filtered data with filters:", filters);
+    console.log("Available processed data:", this.processedData.length);
+    
+    let filteredData = [...this.processedData];
+
+    // Check data validity
+    if (!Array.isArray(filteredData) || filteredData.length === 0) {
+      console.error("No valid data available for filtering");
+      return [];
     }
-  
-    let filteredData = this.processedData;
-  
-    if (filters.emergency !== "") {
-      filteredData = filteredData.filter(
-        (record) => record.riskFactors.emergency === parseInt(filters.emergency)
-      );
+
+    // Only apply filters that are explicitly provided and not undefined/null
+    if (filters.riskFactor && filters.outcome) {
+      // Filter based on metric availability
+      filteredData = filteredData.filter(record => {
+        // For department, check the department field directly
+        if (filters.riskFactor === "department") {
+          return record.department !== undefined && 
+                 record.outcomes[filters.outcome] !== undefined;
+        }
+        // For other risk factors, check in riskFactors object
+        return record.riskFactors[filters.riskFactor] !== undefined && 
+               record.outcomes[filters.outcome] !== undefined;
+      });
     }
-  
-    if (filters.department) {
-      filteredData = filteredData.filter(
-        (record) => record.department === filters.department
-      );
-    }
-  
-    if (!this._filterCache) {
-      this._filterCache = {};
-    }
-    this._filterCache[cacheKey] = filteredData;
+
+    console.log("Filtered data count:", filteredData.length);
     return filteredData;
-  }
-  
-  getMetricRange(metric) {
-    const values = this.processedData
-      .map((record) => {
-        const [category, field] = metric.split(".");
-        return record[category][field];
-      })
-      .filter((value) => value !== null);
-
-    return {
-      min: Math.min(...values),
-      max: Math.max(...values),
-      mean: values.reduce((a, b) => a + b, 0) / values.length,
-    };
-  }
-
-  getUniqueValues(category, field) {
-    return [
-      ...new Set(
-        this.processedData.map((record) => record[category][field])
-      ),
-    ].filter((value) => value !== null);
   }
 }
 
